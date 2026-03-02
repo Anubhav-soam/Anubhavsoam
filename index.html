@@ -9,7 +9,16 @@
 
 </head>
 <body>
+  <nav class="main-nav">
+    <a class="nav-logo" href="#" aria-label="Home">AS</a>
+    <div class="nav-links">
+      <a href="#" class="active" onclick="showTab('portfolio'); return false;">My Portfolio</a>
+      <a href="#" onclick="showTab('blog-tab'); return false;">Blog</a>
+    </div>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode">🌙 Dark</button>
+  </nav>
 
+  <main id="portfolio" class="tab-content active">
 
 
   <!-- HERO -->
@@ -341,6 +350,23 @@
     <p>© 2025 Anubhav Soam &nbsp;·&nbsp; Built with precision &nbsp;·&nbsp; Finance meets Technology</p>
   </footer>
 
+  </main>
+
+  <section id="blog-tab" class="tab-content">
+    <div class="blog-shell">
+      <div class="blog-hero">
+        <p class="blog-kicker">Finance Insights Hub</p>
+        <h2>Market Notes, One Topic at a Time</h2>
+        <p>Organize your writing by topic and publish multiple deep-dive posts under each track. Readers can like posts so you can quickly gauge what resonates most.</p>
+      </div>
+
+      <div class="topic-strip" id="topicStrip"></div>
+
+      <div class="blog-grid" id="blogGrid"></div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
 
 </body>
 </html>
