@@ -9,19 +9,16 @@
 
 </head>
 <body>
-
-<nav>
+<nav class="site-nav">
   <div class="nav-logo">AS</div>
   <ul class="nav-links">
-    <li><a onclick="showTab('portfolio')" class="active" id="nav-portfolio">Portfolio</a></li>
-    <li><a onclick="showTab('dcf-tab')" id="nav-dcf-tab">DCF Model</a></li>
+    <li><a onclick="showTab('portfolio')" class="active" id="nav-portfolio">My Portfolio</a></li>
+    <li><a onclick="showTab('blog-tab')" id="nav-blog-tab">Blog</a></li>
   </ul>
   <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">Light Mode</button>
 </nav>
 
-<!-- =============== PORTFOLIO TAB =============== -->
 <div id="portfolio" class="tab-content active">
-
   <!-- HERO -->
   <div id="home" style="min-height:100vh;display:flex;align-items:center;padding:8rem 3rem 4rem;position:relative;overflow:hidden;">
     <div class="hero-bg"></div>
@@ -52,7 +49,6 @@
       <div class="hero-cta fade-in delay-4">
         <a href="mailto:soamanubhav@gmail.com" class="btn btn-primary">Get In Touch</a>
         <a href="https://www.linkedin.com/in/anubhav-soam/" target="_blank" rel="noreferrer noopener" class="btn btn-outline">LinkedIn ↗</a>
-        <button onclick="showTab('dcf-tab')" class="btn btn-outline" style="border-color:var(--accent2);color:var(--accent2);">Try DCF Model ↗</button>
       </div>
     </div>
 
@@ -222,18 +218,6 @@
         </div>
         <a href="https://link.springer.com/chapter/10.1007/978-981-16-5685-9_34" target="_blank" rel="noreferrer noopener" style="display:inline-block;margin-top:1rem;font-size:0.75rem;color:var(--accent2);text-decoration:none;">View Publication ↗</a>
       </div>
-
-      <div class="project-card" style="cursor:pointer;" onclick="showTab('dcf-tab')">
-        <div class="project-icon">🏗️</div>
-        <h3>Live DCF Model</h3>
-        <p>Try the interactive Discounted Cash Flow model embedded in this portfolio — featuring sensitivity heatmaps, football field analysis, and multi-method valuation.</p>
-        <div>
-          <span class="project-tag">DCF</span>
-          <span class="project-tag">Sensitivity</span>
-          <span class="project-tag">Football Field</span>
-        </div>
-        <div style="margin-top:1rem;color:var(--accent);font-size:0.8rem;">Click to launch → </div>
-      </div>
     </div>
   </section>
 
@@ -364,35 +348,94 @@
     <p>© 2025 Anubhav Soam &nbsp;·&nbsp; Built with precision &nbsp;·&nbsp; Finance meets Technology</p>
   </footer>
 
+
+
 </div><!-- end portfolio tab -->
 
-<!-- =============== DCF TAB =============== -->
-<div id="dcf-tab" class="tab-content">
-  <div class="dcf-terminal">
-    <div class="ticker-bar">
-      <span class="ticker-label">⬡ DCF Terminal</span>
-      <input id="dcfTicker" class="ticker-input" placeholder="Ticker e.g. RELIANCE.NS · AAPL · TCS.NS" />
-      <button id="fetchDataBtn" class="fetch-btn" type="button">Fetch Data</button>
-      <span id="fetchStatus"></span>
+<div id="blog-tab" class="tab-content">
+  <section id="blog" class="blog-shell">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">Finance Blog</h2>
+      <div class="section-line"></div>
     </div>
 
-    <div class="header-card">
-      <div>
-        <div class="co-name" id="coName">— Enter ticker above & hit FETCH DATA —</div>
-        <div class="co-sub" id="coSub">DCF VALUATION MODEL</div>
+    <div class="blog-intro">
+      <h3>Insights by Topic</h3>
+      <p>Each topic contains a cluster of focused posts. Readers can react with likes, and you can track engagement directly on each article card.</p>
+      <div class="topic-filters" id="topicFilters">
+        <button class="topic-chip active" data-topic="all" type="button">All Topics</button>
+        <button class="topic-chip" data-topic="Fixed Income" type="button">Fixed Income</button>
+        <button class="topic-chip" data-topic="Equity Research" type="button">Equity Research</button>
+        <button class="topic-chip" data-topic="Risk & Macro" type="button">Risk & Macro</button>
       </div>
-      <div id="kpiGrid" class="kpi-grid"></div>
     </div>
 
-    <div class="tabs" id="dcfInnerTabs"></div>
+    <div class="blog-topic" data-topic-group="Fixed Income">
+      <div class="blog-topic-head">
+        <h4>Fixed Income</h4>
+        <span class="topic-badge">Topic Series</span>
+      </div>
+      <div class="blog-grid">
+        <article class="blog-card" data-topic="Fixed Income" data-post-id="fi-duration">
+          <p class="blog-meta">Fixed Income · 6 min read</p>
+          <h5>Duration & Convexity: Practical Bond Positioning</h5>
+          <p>How interest-rate sensitivity changes across bond ladders and how to build resilient allocations.</p>
+          <div class="blog-actions">
+            <button class="like-btn" type="button">❤ <span class="like-count">0</span></button>
+            <span class="engagement">Live engagement enabled</span>
+          </div>
+        </article>
+        <article class="blog-card" data-topic="Fixed Income" data-post-id="fi-credit">
+          <p class="blog-meta">Fixed Income · 8 min read</p>
+          <h5>Credit Spreads in Volatile Markets</h5>
+          <p>A framework to separate temporary spread widening from structural credit deterioration.</p>
+          <div class="blog-actions">
+            <button class="like-btn" type="button">❤ <span class="like-count">0</span></button>
+            <span class="engagement">Reader sentiment visible</span>
+          </div>
+        </article>
+      </div>
+    </div>
 
-    <div id="dcfContent"></div>
+    <div class="blog-topic" data-topic-group="Equity Research">
+      <div class="blog-topic-head">
+        <h4>Equity Research</h4>
+        <span class="topic-badge">Topic Series</span>
+      </div>
+      <div class="blog-grid">
+        <article class="blog-card" data-topic="Equity Research" data-post-id="er-moat">
+          <p class="blog-meta">Equity Research · 7 min read</p>
+          <h5>Moat Strength vs. Valuation Multiple</h5>
+          <p>Balancing quality businesses with entry discipline using an evidence-based checklist.</p>
+          <div class="blog-actions">
+            <button class="like-btn" type="button">❤ <span class="like-count">0</span></button>
+            <span class="engagement">Trackable likes</span>
+          </div>
+        </article>
+      </div>
+    </div>
 
-    <div class="note">Analytical tool only. Please verify with latest filings and market data.</div>
-  </div>
-</div><!-- end dcf tab -->
+    <div class="blog-topic" data-topic-group="Risk & Macro">
+      <div class="blog-topic-head">
+        <h4>Risk & Macro</h4>
+        <span class="topic-badge">Topic Series</span>
+      </div>
+      <div class="blog-grid">
+        <article class="blog-card" data-topic="Risk & Macro" data-post-id="rm-liquidity">
+          <p class="blog-meta">Risk & Macro · 5 min read</p>
+          <h5>Liquidity Regimes and Portfolio Defense</h5>
+          <p>Signals to monitor when tightening liquidity starts impacting cross-asset performance.</p>
+          <div class="blog-actions">
+            <button class="like-btn" type="button">❤ <span class="like-count">0</span></button>
+            <span class="engagement">Engagement per post</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</div><!-- end blog tab -->
 
 <script src="script.js" defer></script>
-
 </body>
 </html>
