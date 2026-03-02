@@ -10,17 +10,7 @@
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">AS</div>
-  <ul class="nav-links">
-    <li><a onclick="showTab('portfolio')" class="active" id="nav-portfolio">Portfolio</a></li>
-    <li><a onclick="showTab('dcf-tab')" id="nav-dcf-tab">DCF Model</a></li>
-  </ul>
-  <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">Light Mode</button>
-</nav>
 
-<!-- =============== PORTFOLIO TAB =============== -->
-<div id="portfolio" class="tab-content active">
 
   <!-- HERO -->
   <div id="home" style="min-height:100vh;display:flex;align-items:center;padding:8rem 3rem 4rem;position:relative;overflow:hidden;">
@@ -52,7 +42,6 @@
       <div class="hero-cta fade-in delay-4">
         <a href="mailto:soamanubhav@gmail.com" class="btn btn-primary">Get In Touch</a>
         <a href="https://www.linkedin.com/in/anubhav-soam/" target="_blank" rel="noreferrer noopener" class="btn btn-outline">LinkedIn ↗</a>
-        <button onclick="showTab('dcf-tab')" class="btn btn-outline" style="border-color:var(--accent2);color:var(--accent2);">Try DCF Model ↗</button>
       </div>
     </div>
 
@@ -222,18 +211,6 @@
         </div>
         <a href="https://link.springer.com/chapter/10.1007/978-981-16-5685-9_34" target="_blank" rel="noreferrer noopener" style="display:inline-block;margin-top:1rem;font-size:0.75rem;color:var(--accent2);text-decoration:none;">View Publication ↗</a>
       </div>
-
-      <div class="project-card" style="cursor:pointer;" onclick="showTab('dcf-tab')">
-        <div class="project-icon">🏗️</div>
-        <h3>Live DCF Model</h3>
-        <p>Try the interactive Discounted Cash Flow model embedded in this portfolio — featuring sensitivity heatmaps, football field analysis, and multi-method valuation.</p>
-        <div>
-          <span class="project-tag">DCF</span>
-          <span class="project-tag">Sensitivity</span>
-          <span class="project-tag">Football Field</span>
-        </div>
-        <div style="margin-top:1rem;color:var(--accent);font-size:0.8rem;">Click to launch → </div>
-      </div>
     </div>
   </section>
 
@@ -364,35 +341,6 @@
     <p>© 2025 Anubhav Soam &nbsp;·&nbsp; Built with precision &nbsp;·&nbsp; Finance meets Technology</p>
   </footer>
 
-</div><!-- end portfolio tab -->
-
-<!-- =============== DCF TAB =============== -->
-<div id="dcf-tab" class="tab-content">
-  <div class="dcf-terminal">
-    <div class="ticker-bar">
-      <span class="ticker-label">⬡ DCF Terminal</span>
-      <input id="dcfTicker" class="ticker-input" placeholder="Ticker e.g. RELIANCE.NS · AAPL · TCS.NS" />
-      <button id="fetchDataBtn" class="fetch-btn" type="button">Fetch Data</button>
-      <span id="fetchStatus"></span>
-    </div>
-
-    <div class="header-card">
-      <div>
-        <div class="co-name" id="coName">— Enter ticker above & hit FETCH DATA —</div>
-        <div class="co-sub" id="coSub">DCF VALUATION MODEL</div>
-      </div>
-      <div id="kpiGrid" class="kpi-grid"></div>
-    </div>
-
-    <div class="tabs" id="dcfInnerTabs"></div>
-
-    <div id="dcfContent"></div>
-
-    <div class="note">Analytical tool only. Please verify with latest filings and market data.</div>
-  </div>
-</div><!-- end dcf tab -->
-
-<script src="script.js" defer></script>
 
 </body>
 </html>
