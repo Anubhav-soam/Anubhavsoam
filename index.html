@@ -9,7 +9,16 @@
 
 </head>
 <body>
+  <nav class="main-nav">
+    <a class="nav-logo" href="#" aria-label="Home">AS</a>
+    <div class="nav-links">
+      <a href="#" class="active" onclick="showTab('portfolio'); return false;">My Portfolio</a>
+      <a href="#" onclick="showTab('blog-tab'); return false;">Blog</a>
+    </div>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode">🌙 Dark</button>
+  </nav>
 
+  <main id="portfolio" class="tab-content active">
 
 
   <!-- HERO -->
@@ -341,6 +350,105 @@
     <p>© 2025 Anubhav Soam &nbsp;·&nbsp; Built with precision &nbsp;·&nbsp; Finance meets Technology</p>
   </footer>
 
+  </main>
+
+  <section id="blog-tab" class="tab-content">
+    <div class="blog-shell blog-cms">
+      <div class="blog-hero">
+        <p class="blog-kicker">Finance Insights Hub</p>
+        <h2>Market Notes, One Topic at a Time</h2>
+        <p>Organize your writing by topic and publish multiple deep-dive posts under each track. Readers can like posts so you can quickly gauge what resonates most.</p>
+      </div>
+
+      <div class="topic-strip" id="topicStrip"></div>
+
+
+      <section class="blog-admin" aria-label="Blog editor">
+        <div class="blog-admin-head">
+          <h3>Write & Edit Blogs</h3>
+          <p>Full in-site writing studio: create posts, edit drafts, and publish by topic from this page itself.</p>
+        </div>
+
+
+          <div class="cms-toolbar">
+            <div class="cms-stats" id="cmsStats"></div>
+            <div class="cms-actions">
+              <button type="button" id="exportBlogsBtn" class="btn btn-outline">Export JSON</button>
+              <label class="btn btn-outline import-btn" for="importBlogsFile">Import JSON</label>
+              <input id="importBlogsFile" type="file" accept="application/json" hidden>
+            </div>
+          </div>
+        <div class="blog-admin-layout">
+          <aside class="blog-drafts-panel">
+            <div class="panel-head">
+              <h4>Your Blog Manager</h4>
+              <button type="button" id="newPostBtn" class="btn btn-outline">+ New Draft</button>
+            </div>
+            <input id="draftSearch" class="draft-search" type="search" placeholder="Search blogs by title/topic">
+            <div class="manager-filters">
+              <button type="button" class="topic-chip active" data-manager-filter="all">All</button>
+              <button type="button" class="topic-chip" data-manager-filter="published">Published</button>
+              <button type="button" class="topic-chip" data-manager-filter="draft">Draft</button>
+            </div>
+            <div id="draftList" class="draft-list" aria-live="polite"></div>
+          </aside>
+
+          <div class="blog-editor-main">
+            <form id="blogEditorForm" class="blog-editor-form">
+              <input type="hidden" id="editPostId" value="">
+              <div class="editor-grid">
+                <label>Topic
+                  <input id="postTopic" type="text" placeholder="e.g. Fixed Income" required>
+                </label>
+                <label>Title
+                  <input id="postTitle" type="text" placeholder="Blog title" required>
+                </label>
+                <label>Date
+                  <input id="postDate" type="text" placeholder="e.g. Jun 2026" required>
+                </label>
+                <label>Read Time
+                  <input id="postReadTime" type="text" placeholder="e.g. 6 min read" required>
+                </label>
+                <label>Status
+                  <select id="postStatus">
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                </label>
+                <label>Cover Image URL
+                  <input id="postImage" type="url" placeholder="https://example.com/image.jpg">
+                </label>
+                <label>Or Upload Cover Image
+                  <input id="postImageFile" type="file" accept="image/*">
+                </label>
+              </div>
+              <label>Content
+                <textarea id="postExcerpt" rows="7" placeholder="Write your blog content here..." required></textarea>
+              </label>
+              <div class="editor-actions">
+                <button type="submit" class="btn btn-primary" id="savePostBtn">Publish Blog</button>
+                <button type="button" class="btn btn-outline" id="saveDraftBtn">Save Draft</button>
+                <button type="button" class="btn btn-outline" id="cancelEditBtn">Cancel Edit</button>
+                <span id="editorStatus" class="editor-status" aria-live="polite"></span>
+              </div>
+            </form>
+
+            <article class="live-preview" id="livePreview">
+              <img id="previewImage" class="preview-image" alt="Blog preview image" hidden>
+              <p class="blog-topic">Preview</p>
+              <h4 id="previewTitle">Your title appears here</h4>
+              <p class="blog-meta" id="previewMeta">Date · Read time · Status</p>
+              <p id="previewBody">Start typing in the editor to see your live preview.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <div class="blog-grid" id="blogGrid"></div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
 
 </body>
 </html>
