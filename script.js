@@ -108,6 +108,21 @@ let blogState = {
   editingPost: null
 };
 let blogBootstrapped = false;
+let cloudStatusState = { mode: 'local', message: 'Local only' };
+let cloudSaveQueue = Promise.resolve();
+
+function setCloudStatus(mode, message) {
+  cloudStatusState = { mode, message };
+  const badge = document.getElementById('cloudStatus');
+  if (badge) badge.textContent = mode === 'cloud' ? `☁ ${message}` : `☁ ${message}`;
+}
+
+function updateCloudControls() {
+  const btn = document.getElementById('syncNowBtn');
+  if (btn) btn.style.display = isCloudConfigured() ? 'inline-flex' : 'none';
+  const badge = document.getElementById('cloudStatus');
+  if (badge) badge.textContent = `☁ ${cloudStatusState.message}`;
+}
 
 function deepClone(v) {
   return JSON.parse(JSON.stringify(v));
@@ -167,10 +182,24 @@ async function loadDB() {
   };
 
   try {
-    const remote = await cloudLoadDB();
-    DB = remote || localFallback();
-  } catch {
+    if (!isCloudConfigured()) {
+      DB = localFallback();
+      setCloudStatus('local', 'Local only (not configured)');
+    } else {
+      const remote = await cloudLoadDB();
+      if (remote) {
+        DB = remote;
+        setCloudStatus('cloud', 'Connected');
+      } else {
+        DB = localFallback();
+        await cloudSaveDB(DB);
+        setCloudStatus('cloud', 'Connected (initialized)');
+      }
+    }
+  } catch (err) {
     DB = localFallback();
+    setCloudStatus('local', 'Cloud error, using local');
+    console.warn('Cloud load failed:', err.message);
   }
 
   try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch {}
@@ -179,7 +208,31 @@ async function loadDB() {
 function saveDB() {
   try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch {}
   if (isCloudConfigured()) {
-    cloudSaveDB(DB).catch((err) => console.warn('Cloud sync failed:', err.message));
+    cloudSaveQueue = cloudSaveQueue
+      .then(() => cloudSaveDB(DB))
+      .then(() => setCloudStatus('cloud', 'Connected'))
+      .catch((err) => {
+        setCloudStatus('local', 'Cloud sync failed');
+        console.warn('Cloud sync failed:', err.message);
+      });
+  }
+}
+
+async function syncCloudNow() {
+  if (!isCloudConfigured()) {
+    toast('⚠ Cloud DB not configured. Add BLOG_CLOUD_CONFIG first.');
+    setCloudStatus('local', 'Local only (not configured)');
+    return;
+  }
+  try {
+    setCloudStatus('cloud', 'Syncing…');
+    await cloudSaveDB(DB);
+    setCloudStatus('cloud', 'Connected');
+    toast('☁ Synced to cloud');
+  } catch (err) {
+    setCloudStatus('local', 'Cloud sync failed');
+    toast('❌ Cloud sync failed');
+    console.warn('Cloud sync failed:', err.message);
   }
 }
 
@@ -246,6 +299,7 @@ function renderBlog() {
   if (blogState.view === 'posts') root.innerHTML = renderPosts();
   if (blogState.view === 'single') root.innerHTML = renderSingle();
   updateFAB();
+  updateCloudControls();
 }
 
 function renderTopics() {
@@ -495,6 +549,7 @@ function updateFAB() {
 async function initBlogApp() {
   await loadDB();
   renderBlog();
+  updateCloudControls();
   document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
     if (e.target.id === 'modalOverlay') closeModal();
   });

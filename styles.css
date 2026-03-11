@@ -1158,6 +1158,21 @@ display: grid;
 }
 #blog-tab .nav-actions { display: flex; gap: 10px; align-items: center; }
 
+#blog-tab .cloud-status {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+}
+
+#blog-tab #syncNowBtn {
+  padding: 7px 12px;
+  font-size: 0.7rem;
+}
+
 /* ── Buttons ── */
 #blog-tab .btn {
   font-family: 'DM Mono', monospace;
@@ -1657,6 +1672,54 @@ display: grid;
 #blog-tab .post-headline { font-size: 1.6rem; }
 #blog-tab .modal-box { padding: 24px; }
 #blog-tab .blog-nav { flex-wrap: wrap; gap: 10px; }
+#blog-tab .nav-actions { width: 100%; justify-content: flex-start; }
+}
+
+
+@media (max-width: 1024px) {
+  section { padding: 5rem 2rem; }
+  .hero-stats { gap: 1.5rem; flex-wrap: wrap; }
+  .main-nav { padding: 0.85rem 1.25rem; }
+  .nav-actions-global { flex-wrap: wrap; justify-content: flex-end; }
+}
+
+@media (max-width: 768px) {
+  .main-nav { justify-content: space-between; }
+  .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  .nav-collapsible {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(86vw, 360px);
+    height: 100vh;
+    background: color-mix(in srgb, var(--bg) 94%, var(--card));
+    border-left: 1px solid var(--border);
+    box-shadow: -12px 0 30px rgba(0,0,0,0.28);
+    padding: 5.2rem 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    transform: translateX(100%);
+    transition: transform 0.28s ease;
+    z-index: 1200;
+  }
+  .main-nav.nav-open .nav-collapsible { transform: translateX(0); }
+  .nav-links, .nav-actions-global { width: 100%; }
+  .nav-links { flex-direction: column; align-items: stretch; }
+  .nav-links a { text-align: center; }
+  .nav-actions-global { flex-direction: column; }
+  .nav-action-btn, .theme-toggle { width: 100%; }
+  #home { padding: 6rem 1rem 3rem !important; }
+  section { padding: 4rem 1rem; }
+  .hero-cta { flex-wrap: wrap; }
+  .projects-grid, .skills-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .nav-action-btn { min-width: 94px; }
+  .theme-toggle { padding: 0.45rem 0.7rem; font-size: 0.72rem; }
+  .hero-stats { gap: 0.9rem; }
 }
 
 

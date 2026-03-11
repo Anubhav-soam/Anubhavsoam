@@ -1,13 +1,18 @@
 # Website
 
-## Blog Cloud Database Setup (Supabase)
+## Why your blogs were not visible on iPad/mobile
+Your previous setup was likely running in **localStorage-only mode** (no cloud credentials configured). In that mode, each device stores data separately, so posts created on laptop do not appear on phone/iPad.
 
-The blog now supports cloud persistence for posts, markdown content, likes, comments, dates, and image data (stored as data URLs in JSON).
+This project now shows cloud status in Blog page header:
+- `☁ Local only (not configured)` → not connected to database yet.
+- `☁ Connected` / `☁ Connected (initialized)` → database is active.
 
-If cloud config is not set, it safely falls back to localStorage.
+---
 
-### 1) Create Supabase table
-Run this SQL in Supabase SQL editor:
+## Connect to Supabase database (recommended)
+
+### 1) Create table in Supabase
+Run this SQL in Supabase SQL Editor:
 
 ```sql
 create table if not exists public.blog_state (
@@ -32,19 +37,34 @@ using (true)
 with check (true);
 ```
 
-### 2) Add project config
-In `index.html`, update `window.BLOG_CLOUD_CONFIG` with your Supabase values:
+### 2) Add project credentials
+1. Copy `blog.config.example.js` to `blog.config.js`.
+2. Fill your real values:
 
-```html
-<script>
-  window.BLOG_CLOUD_CONFIG = {
-    url: 'https://YOUR_PROJECT_REF.supabase.co',
-    anonKey: 'YOUR_SUPABASE_ANON_KEY',
-    table: 'blog_state',
-    stateId: 'main'
-  };
-</script>
+```js
+window.BLOG_CLOUD_CONFIG = {
+  url: 'https://YOUR_PROJECT_REF.supabase.co',
+  anonKey: 'YOUR_SUPABASE_ANON_KEY',
+  table: 'blog_state',
+  stateId: 'main'
+};
 ```
 
-### 3) Deploy
-Deploy the site as usual. Once configured, blog changes sync to Supabase and become visible across devices/users.
+> `blog.config.js` is git-ignored so your key is not committed.
+
+### 3) Deploy both files
+Make sure deployed site includes:
+- `index.html`
+- `script.js`
+- `blog.config.js`
+
+### 4) Verify
+Open Blog page and check cloud badge:
+- If badge says `☁ Connected`, edits should sync across laptop/iPad/mobile.
+- You can click `⟳ Sync` button in Blog header to force a manual sync.
+
+---
+
+## Notes
+- Images are stored as data URLs inside JSON; for large image-heavy blogs, use Supabase Storage in next phase.
+- Current setup is simple/public-write for quick launch. For production-grade security, use auth-based RLS rules.

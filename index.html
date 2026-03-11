@@ -369,7 +369,10 @@
     <div class="blog-wrapper">
       <nav class="blog-nav">
         <div class="nav-brand">✦ Anubhav's Blog</div>
-        <div class="nav-actions"></div>
+        <div class="nav-actions">
+          <span id="cloudStatus" class="cloud-status" title="Blog cloud sync status">☁ Local only</span>
+          <button id="syncNowBtn" class="btn btn-blue" onclick="syncCloudNow()" type="button" title="Sync now">⟳ Sync</button>
+        </div>
       </nav>
 
       <div id="blogRoot"></div>
@@ -385,13 +388,14 @@
   </section>
 
   <script>
-    window.BLOG_CLOUD_CONFIG = {
+    window.BLOG_CLOUD_CONFIG = window.BLOG_CLOUD_CONFIG || {
       url: '',
       anonKey: '',
       table: 'blog_state',
       stateId: 'main'
     };
   </script>
+  <script src="blog.config.js"></script>
   <script src="script.js"></script>
 
 </body>
