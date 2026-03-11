@@ -24,6 +24,21 @@
   --danger: #c0392b;
 }
 
+/* SUBTLE GLOBAL GLASS POLISH */
+:root {
+  --glass-soft: color-mix(in srgb, var(--card) 88%, transparent);
+  --glass-border-soft: color-mix(in srgb, var(--border) 78%, #ffffff22);
+  --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.08);
+  --glass-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="light"] {
+  --glass-soft: color-mix(in srgb, var(--card) 92%, #ffffff);
+  --glass-border-soft: color-mix(in srgb, var(--border) 82%, #ffffff);
+  --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.65);
+  --glass-shadow-soft: 0 10px 22px rgba(12, 18, 28, 0.08);
+}
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html { scroll-behavior: smooth; }
@@ -295,8 +310,11 @@
   }
 
   .skill-card {
-    background: var(--card);
-    border: 1px solid var(--border);
+    background: var(--glass-soft);
+    border: 1px solid var(--glass-border-soft);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--glass-highlight), var(--glass-shadow-soft);
     border-radius: 8px;
     padding: 1.8rem;
     transition: all 0.3s;
@@ -347,8 +365,11 @@
   }
 
   .project-card {
-    background: var(--card);
-    border: 1px solid var(--border);
+    background: var(--glass-soft);
+    border: 1px solid var(--glass-border-soft);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--glass-highlight), var(--glass-shadow-soft);
     border-radius: 8px;
     padding: 2rem;
     transition: all 0.3s;
@@ -486,9 +507,12 @@
     align-items: center;
     gap: 1rem;
     padding: 1.2rem;
-    background: var(--card);
-    border: 1px solid var(--border);
+    background: var(--glass-soft);
+    border: 1px solid var(--glass-border-soft);
     border-radius: 6px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--glass-highlight), var(--glass-shadow-soft);
     transition: all 0.3s;
     text-decoration: none;
     color: inherit;
@@ -526,8 +550,11 @@
 
   /* ACHIEVEMENT */
   .achievement-card {
-    background: linear-gradient(135deg, rgba(200,169,110,0.08), rgba(91,143,255,0.05));
-    border: 1px solid rgba(200,169,110,0.3);
+    background: color-mix(in srgb, var(--glass-soft) 86%, rgba(200,169,110,0.08));
+    border: 1px solid var(--glass-border-soft);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--glass-highlight), var(--glass-shadow-soft);
     border-radius: 8px;
     padding: 2rem;
     margin-bottom: 2rem;
@@ -621,8 +648,11 @@ display: grid;
     transform: translateY(-1px);
   }
 .result-card {
-    background: var(--card);
-    border: 1px solid var(--border);
+    background: var(--glass-soft);
+    border: 1px solid var(--glass-border-soft);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--glass-highlight), var(--glass-shadow-soft);
     border-radius: 8px;
     padding: 1.8rem;
   }
@@ -906,6 +936,7 @@ display: grid;
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(12px);
   background: color-mix(in srgb, var(--bg) 78%, transparent);
+  box-shadow: var(--glass-highlight);
 }
 
 .nav-logo {
