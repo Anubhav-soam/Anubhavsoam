@@ -336,9 +336,7 @@ function renderPosts() {
 
   const items = posts.map((p) => {
     const comments = (DB.comments[p.id] || []).length;
-    const thumb = p.cover ? `<img src="${p.cover}" class="post-thumb" alt="">` : `<div class="post-thumb-placeholder">${esc(topic.emoji)}</div>`;
     return `<div class="glass post-item" onclick="showView('single','${p.id}')">
-      ${thumb}
       <div class="post-info">
         <div class="post-title">${esc(p.title)}</div>
         <div class="post-excerpt">${esc(p.content.replace(/[#*>`-]/g, '').slice(0, 110))}…</div>
