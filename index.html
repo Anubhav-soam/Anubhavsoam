@@ -15,7 +15,11 @@
       <a href="#" class="active" onclick="showTab('portfolio'); return false;">My Portfolio</a>
       <a href="#" onclick="showTab('blog-tab'); return false;">Blog</a>
     </div>
-    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode">🌙 Dark</button>
+    <div class="nav-actions-global">
+      <a class="theme-toggle nav-action-btn" href="https://github.com/Anubhavsoam/Anubhavsoam/raw/main/anubhav_soam_resume.pdf" download="anubhav_soam_resume.pdf" target="_blank" rel="noreferrer noopener" aria-label="Download resume">📄 Resume</a>
+      <button class="theme-toggle nav-action-btn" id="adminBtn" onclick="toggleAdmin()" aria-label="Toggle admin mode">⚙ Admin</button>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode">🌙 Dark</button>
+    </div>
   </nav>
 
   <main id="portfolio" class="tab-content active">
@@ -362,9 +366,7 @@
     <div class="blog-wrapper">
       <nav class="blog-nav">
         <div class="nav-brand">✦ Anubhav's Blog</div>
-        <div class="nav-actions">
-          <button class="btn btn-admin" id="adminBtn" onclick="toggleAdmin()">⚙ Admin</button>
-        </div>
+        <div class="nav-actions"></div>
       </nav>
 
       <div id="blogRoot"></div>
