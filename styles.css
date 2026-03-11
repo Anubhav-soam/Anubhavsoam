@@ -1002,6 +1002,66 @@ display: grid;
 }
 
 
+
+/* GLOBAL BOX GLASS ENHANCEMENT (PORTFOLIO + BLOG) */
+:is(
+  .experience-item,
+  .skill-card,
+  .project-card,
+  .edu-item,
+  .contact-item,
+  .achievement-card,
+  .input-card,
+  .result-card,
+  .val-metric,
+  .football-field,
+  .hm-cell,
+  .cert-item,
+  #blog-tab .topic-card,
+  #blog-tab .add-card,
+  #blog-tab .post-item,
+  #blog-tab .post-body,
+  #blog-tab .comment-form,
+  #blog-tab .comment-item,
+  #blog-tab .modal-box,
+  #blog-tab .post-thumb-placeholder,
+  #blog-tab .like-btn,
+  #blog-tab .field-input
+) {
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 82%, #ffffff22);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 10px 24px rgba(0,0,0,0.14);
+}
+
+[data-theme="light"] :is(
+  .experience-item,
+  .skill-card,
+  .project-card,
+  .edu-item,
+  .contact-item,
+  .achievement-card,
+  .input-card,
+  .result-card,
+  .val-metric,
+  .football-field,
+  .hm-cell,
+  .cert-item,
+  #blog-tab .topic-card,
+  #blog-tab .add-card,
+  #blog-tab .post-item,
+  #blog-tab .post-body,
+  #blog-tab .comment-form,
+  #blog-tab .comment-item,
+  #blog-tab .modal-box,
+  #blog-tab .post-thumb-placeholder,
+  #blog-tab .like-btn,
+  #blog-tab .field-input
+) {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.72), 0 10px 22px rgba(12,18,28,0.08);
+}
+
 /* INTEGRATED BLOG TAB STYLES */
 /* ============================================================
    BLOG — GLASSMORPHISM THEME
