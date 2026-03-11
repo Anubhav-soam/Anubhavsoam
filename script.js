@@ -62,6 +62,13 @@ function initNavMenu() {
 
 const ADMIN_PASSWORD = 'admin123';
 const DB_KEY = 'glass_blog_v1';
+const CLOUD_CONFIG = {
+  provider: 'supabase',
+  url: window.BLOG_CLOUD_CONFIG?.url || '',
+  anonKey: window.BLOG_CLOUD_CONFIG?.anonKey || '',
+  table: window.BLOG_CLOUD_CONFIG?.table || 'blog_state',
+  stateId: window.BLOG_CLOUD_CONFIG?.stateId || 'main'
+};
 
 const DEFAULT_DB = {
   topics: [
@@ -102,17 +109,78 @@ let blogState = {
 };
 let blogBootstrapped = false;
 
-function loadDB() {
+function deepClone(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+
+function normalizeDB(candidate) {
+  return {
+    topics: Array.isArray(candidate?.topics) ? candidate.topics : deepClone(DEFAULT_DB.topics),
+    posts: Array.isArray(candidate?.posts) ? candidate.posts : deepClone(DEFAULT_DB.posts),
+    comments: candidate?.comments && typeof candidate.comments === 'object' ? candidate.comments : deepClone(DEFAULT_DB.comments)
+  };
+}
+
+function isCloudConfigured() {
+  return Boolean(CLOUD_CONFIG.url && CLOUD_CONFIG.anonKey);
+}
+
+async function cloudLoadDB() {
+  if (!isCloudConfigured()) return null;
+  const url = `${CLOUD_CONFIG.url}/rest/v1/${CLOUD_CONFIG.table}?id=eq.${encodeURIComponent(CLOUD_CONFIG.stateId)}&select=data`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      apikey: CLOUD_CONFIG.anonKey,
+      Authorization: `Bearer ${CLOUD_CONFIG.anonKey}`
+    }
+  });
+  if (!res.ok) throw new Error(`Cloud load failed (${res.status})`);
+  const rows = await res.json();
+  return rows?.[0]?.data ? normalizeDB(rows[0].data) : null;
+}
+
+async function cloudSaveDB(data) {
+  if (!isCloudConfigured()) return;
+  const url = `${CLOUD_CONFIG.url}/rest/v1/${CLOUD_CONFIG.table}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: CLOUD_CONFIG.anonKey,
+      Authorization: `Bearer ${CLOUD_CONFIG.anonKey}`,
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify([{ id: CLOUD_CONFIG.stateId, data }])
+  });
+  if (!res.ok) throw new Error(`Cloud save failed (${res.status})`);
+}
+
+async function loadDB() {
+  const localFallback = () => {
+    try {
+      const raw = localStorage.getItem(DB_KEY);
+      return raw ? normalizeDB(JSON.parse(raw)) : deepClone(DEFAULT_DB);
+    } catch {
+      return deepClone(DEFAULT_DB);
+    }
+  };
+
   try {
-    const raw = localStorage.getItem(DB_KEY);
-    DB = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_DB));
+    const remote = await cloudLoadDB();
+    DB = remote || localFallback();
   } catch {
-    DB = JSON.parse(JSON.stringify(DEFAULT_DB));
+    DB = localFallback();
   }
+
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch {}
 }
 
 function saveDB() {
   try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch {}
+  if (isCloudConfigured()) {
+    cloudSaveDB(DB).catch((err) => console.warn('Cloud sync failed:', err.message));
+  }
 }
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -424,8 +492,8 @@ function updateFAB() {
   fab.classList.toggle('visible', show);
 }
 
-function initBlogApp() {
-  loadDB();
+async function initBlogApp() {
+  await loadDB();
   renderBlog();
   document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
     if (e.target.id === 'modalOverlay') closeModal();
