@@ -19,11 +19,56 @@ function showTab(tab) {
     initBlogApp();
   }
 
+  closeNavMenu();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+
+function toggleNavMenu() {
+  const nav = document.querySelector('.main-nav');
+  const btn = document.getElementById('nav-toggle');
+  if (!nav || !btn) return;
+  const open = nav.classList.toggle('nav-open');
+  btn.setAttribute('aria-expanded', String(open));
+  btn.textContent = open ? '✕' : '☰';
+}
+
+function closeNavMenu() {
+  const nav = document.querySelector('.main-nav');
+  const btn = document.getElementById('nav-toggle');
+  if (!nav || !btn) return;
+  nav.classList.remove('nav-open');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.textContent = '☰';
+}
+
+function initNavMenu() {
+  const btn = document.getElementById('nav-toggle');
+  if (!btn) return;
+
+  btn.addEventListener('click', toggleNavMenu);
+
+  document.addEventListener('click', (e) => {
+    const nav = document.querySelector('.main-nav');
+    if (!nav || !nav.classList.contains('nav-open')) return;
+    if (!nav.contains(e.target)) closeNavMenu();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeNavMenu();
+  });
 }
 
 const ADMIN_PASSWORD = 'admin123';
 const DB_KEY = 'glass_blog_v1';
+const CLOUD_CONFIG = {
+  provider: 'supabase',
+  url: window.BLOG_CLOUD_CONFIG?.url || '',
+  anonKey: window.BLOG_CLOUD_CONFIG?.anonKey || '',
+  table: window.BLOG_CLOUD_CONFIG?.table || 'blog_state',
+  stateId: window.BLOG_CLOUD_CONFIG?.stateId || 'main'
+};
 
 const DEFAULT_DB = {
   topics: [
@@ -63,18 +108,132 @@ let blogState = {
   editingPost: null
 };
 let blogBootstrapped = false;
+let cloudStatusState = { mode: 'local', message: 'Local only' };
+let cloudSaveQueue = Promise.resolve();
 
-function loadDB() {
+function setCloudStatus(mode, message) {
+  cloudStatusState = { mode, message };
+  const badge = document.getElementById('cloudStatus');
+  if (badge) badge.textContent = mode === 'cloud' ? `☁ ${message}` : `☁ ${message}`;
+}
+
+function updateCloudControls() {
+  const btn = document.getElementById('syncNowBtn');
+  if (btn) btn.style.display = isCloudConfigured() ? 'inline-flex' : 'none';
+  const badge = document.getElementById('cloudStatus');
+  if (badge) badge.textContent = `☁ ${cloudStatusState.message}`;
+}
+
+function deepClone(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+
+function normalizeDB(candidate) {
+  return {
+    topics: Array.isArray(candidate?.topics) ? candidate.topics : deepClone(DEFAULT_DB.topics),
+    posts: Array.isArray(candidate?.posts) ? candidate.posts : deepClone(DEFAULT_DB.posts),
+    comments: candidate?.comments && typeof candidate.comments === 'object' ? candidate.comments : deepClone(DEFAULT_DB.comments)
+  };
+}
+
+function isCloudConfigured() {
+  return Boolean(CLOUD_CONFIG.url && CLOUD_CONFIG.anonKey);
+}
+
+async function cloudLoadDB() {
+  if (!isCloudConfigured()) return null;
+  const url = `${CLOUD_CONFIG.url}/rest/v1/${CLOUD_CONFIG.table}?id=eq.${encodeURIComponent(CLOUD_CONFIG.stateId)}&select=data`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      apikey: CLOUD_CONFIG.anonKey,
+      Authorization: `Bearer ${CLOUD_CONFIG.anonKey}`
+    }
+  });
+  if (!res.ok) throw new Error(`Cloud load failed (${res.status})`);
+  const rows = await res.json();
+  return rows?.[0]?.data ? normalizeDB(rows[0].data) : null;
+}
+
+async function cloudSaveDB(data) {
+  if (!isCloudConfigured()) return;
+  const url = `${CLOUD_CONFIG.url}/rest/v1/${CLOUD_CONFIG.table}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: CLOUD_CONFIG.anonKey,
+      Authorization: `Bearer ${CLOUD_CONFIG.anonKey}`,
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify([{ id: CLOUD_CONFIG.stateId, data }])
+  });
+  if (!res.ok) throw new Error(`Cloud save failed (${res.status})`);
+}
+
+async function loadDB() {
+  const localFallback = () => {
+    try {
+      const raw = localStorage.getItem(DB_KEY);
+      return raw ? normalizeDB(JSON.parse(raw)) : deepClone(DEFAULT_DB);
+    } catch {
+      return deepClone(DEFAULT_DB);
+    }
+  };
+
   try {
-    const raw = localStorage.getItem(DB_KEY);
-    DB = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_DB));
-  } catch {
-    DB = JSON.parse(JSON.stringify(DEFAULT_DB));
+    if (!isCloudConfigured()) {
+      DB = localFallback();
+      setCloudStatus('local', 'Local only (not configured)');
+    } else {
+      const remote = await cloudLoadDB();
+      if (remote) {
+        DB = remote;
+        setCloudStatus('cloud', 'Connected');
+      } else {
+        DB = localFallback();
+        await cloudSaveDB(DB);
+        setCloudStatus('cloud', 'Connected (initialized)');
+      }
+    }
+  } catch (err) {
+    DB = localFallback();
+    setCloudStatus('local', 'Cloud error, using local');
+    console.warn('Cloud load failed:', err.message);
   }
+
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch {}
 }
 
 function saveDB() {
   try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch {}
+  if (isCloudConfigured()) {
+    cloudSaveQueue = cloudSaveQueue
+      .then(() => cloudSaveDB(DB))
+      .then(() => setCloudStatus('cloud', 'Connected'))
+      .catch((err) => {
+        setCloudStatus('local', 'Cloud sync failed');
+        console.warn('Cloud sync failed:', err.message);
+      });
+  }
+}
+
+async function syncCloudNow() {
+  if (!isCloudConfigured()) {
+    toast('⚠ Cloud DB not configured. Add BLOG_CLOUD_CONFIG first.');
+    setCloudStatus('local', 'Local only (not configured)');
+    return;
+  }
+  try {
+    setCloudStatus('cloud', 'Syncing…');
+    await cloudSaveDB(DB);
+    setCloudStatus('cloud', 'Connected');
+    toast('☁ Synced to cloud');
+  } catch (err) {
+    setCloudStatus('local', 'Cloud sync failed');
+    toast('❌ Cloud sync failed');
+    console.warn('Cloud sync failed:', err.message);
+  }
 }
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -140,6 +299,7 @@ function renderBlog() {
   if (blogState.view === 'posts') root.innerHTML = renderPosts();
   if (blogState.view === 'single') root.innerHTML = renderSingle();
   updateFAB();
+  updateCloudControls();
 }
 
 function renderTopics() {
@@ -386,9 +546,10 @@ function updateFAB() {
   fab.classList.toggle('visible', show);
 }
 
-function initBlogApp() {
-  loadDB();
+async function initBlogApp() {
+  await loadDB();
   renderBlog();
+  updateCloudControls();
   document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
     if (e.target.id === 'modalOverlay') closeModal();
   });
@@ -398,6 +559,7 @@ function initBlogApp() {
 (function init() {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   applyTheme(savedTheme);
+  initNavMenu();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
