@@ -353,17 +353,30 @@
   </main>
 
   <section id="blog-tab" class="tab-content">
-    <div class="blog-shell">
-      <div class="blog-hero">
-        <p class="blog-kicker">Finance Insights Hub</p>
-        <h2>Market Notes, One Topic at a Time</h2>
-        <p>Organize your writing by topic and publish multiple deep-dive posts under each track. Readers can like posts so you can quickly gauge what resonates most.</p>
-      </div>
-
-      <div class="topic-strip" id="topicStrip"></div>
-
-      <div class="blog-grid" id="blogGrid"></div>
+    <div class="blog-bg">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
     </div>
+
+    <div class="blog-wrapper">
+      <nav class="blog-nav">
+        <div class="nav-brand">✦ Anubhav's Blog</div>
+        <div class="nav-actions">
+          <button class="btn btn-admin" id="adminBtn" onclick="toggleAdmin()">⚙ Admin</button>
+        </div>
+      </nav>
+
+      <div id="blogRoot"></div>
+    </div>
+
+    <button class="fab" id="fab" onclick="blogState.view==='topics'?openTopicModal():openPostModal()" title="New post">＋</button>
+
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-box" id="modalBox"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
   </section>
 
   <script src="script.js"></script>
