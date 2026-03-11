@@ -953,6 +953,26 @@ display: grid;
   box-shadow: 0 0 24px rgba(91,143,255,0.25);
 }
 
+.nav-collapsible {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 1rem;
+}
+
+.nav-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
@@ -1097,9 +1117,10 @@ display: grid;
 #blog-tab .blog-wrapper {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 3rem;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 clamp(1rem, 3vw, 3rem);
 }
 
 /* ── Glass Card Mixin ── */
@@ -1629,11 +1650,58 @@ display: grid;
 /* ── Responsive ── */
 @media (max-width: 900px) {
 #blog-tab { padding: 2rem 0 3.5rem; }
-#blog-tab .blog-wrapper { padding: 0 1.25rem; }
+#blog-tab .blog-wrapper { padding: 0 clamp(0.9rem, 4vw, 1.25rem); }
 #blog-tab .topics-grid { grid-template-columns: 1fr; }
 #blog-tab .post-item { flex-direction: column; }
 #blog-tab .post-thumb, #blog-tab .post-thumb-placeholder { width: 100%; height: 160px; }
 #blog-tab .post-headline { font-size: 1.6rem; }
 #blog-tab .modal-box { padding: 24px; }
 #blog-tab .blog-nav { flex-wrap: wrap; gap: 10px; }
+}
+
+
+@media (max-width: 1024px) {
+  section { padding: 5rem 2rem; }
+  .hero-stats { gap: 1.5rem; flex-wrap: wrap; }
+  .main-nav { padding: 0.85rem 1.25rem; }
+  .nav-actions-global { flex-wrap: wrap; justify-content: flex-end; }
+}
+
+@media (max-width: 768px) {
+  .main-nav { justify-content: space-between; }
+  .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  .nav-collapsible {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(86vw, 360px);
+    height: 100vh;
+    background: color-mix(in srgb, var(--bg) 94%, var(--card));
+    border-left: 1px solid var(--border);
+    box-shadow: -12px 0 30px rgba(0,0,0,0.28);
+    padding: 5.2rem 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    transform: translateX(100%);
+    transition: transform 0.28s ease;
+    z-index: 1200;
+  }
+  .main-nav.nav-open .nav-collapsible { transform: translateX(0); }
+  .nav-links, .nav-actions-global { width: 100%; }
+  .nav-links { flex-direction: column; align-items: stretch; }
+  .nav-links a { text-align: center; }
+  .nav-actions-global { flex-direction: column; }
+  .nav-action-btn, .theme-toggle { width: 100%; }
+  #home { padding: 6rem 1rem 3rem !important; }
+  section { padding: 4rem 1rem; }
+  .hero-cta { flex-wrap: wrap; }
+  .projects-grid, .skills-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .nav-action-btn { min-width: 94px; }
+  .theme-toggle { padding: 0.45rem 0.7rem; font-size: 0.72rem; }
+  .hero-stats { gap: 0.9rem; }
 }

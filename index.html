@@ -11,14 +11,17 @@
 <body>
   <nav class="main-nav">
     <a class="nav-logo" href="#" aria-label="Home">AS</a>
-    <div class="nav-links">
+    <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-collapsible">☰</button>
+    <div id="nav-collapsible" class="nav-collapsible">
+      <div class="nav-links">
       <a href="#" class="active" onclick="showTab('portfolio'); return false;">My Portfolio</a>
       <a href="#" onclick="showTab('blog-tab'); return false;">Blog</a>
-    </div>
-    <div class="nav-actions-global">
+      </div>
+      <div class="nav-actions-global">
       <a class="theme-toggle nav-action-btn" href="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/Anubhav_soam_resume.pdf?raw=1" download="Anubhav_soam_resume.pdf" target="_blank" rel="noreferrer noopener" aria-label="Download resume">📄 Resume</a>
       <button class="theme-toggle nav-action-btn" id="adminBtn" onclick="toggleAdmin()" aria-label="Toggle admin mode">⚙ Admin</button>
       <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode">🌙 Dark</button>
+      </div>
     </div>
   </nav>
 
