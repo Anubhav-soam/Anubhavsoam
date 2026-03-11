@@ -17,12 +17,15 @@
       <a href="#" class="active" onclick="showTab('portfolio'); return false;">My Portfolio</a>
       <a href="#" onclick="showTab('blog-tab'); return false;">Blog</a>
       </div>
-      <div class="nav-actions-global">
-      <a class="theme-toggle nav-action-btn" href="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/Anubhav_soam_resume.pdf?raw=1" download="Anubhav_soam_resume.pdf" target="_blank" rel="noreferrer noopener" aria-label="Download resume">📄 Resume</a>
-      <button class="theme-toggle nav-action-btn" id="adminBtn" onclick="toggleAdmin()" aria-label="Toggle admin mode">⚙ Admin</button>
+      <div class="nav-actions-wrap">
+      <button id="nav-actions-toggle" class="nav-actions-toggle" aria-label="Toggle quick actions" aria-expanded="false" aria-controls="nav-actions-panel">Quick Actions</button>
+      <div id="nav-actions-panel" class="nav-actions-global">
+      <button class="theme-toggle nav-action-btn" id="adminBtn" onclick="toggleAdmin()" aria-label="Toggle admin mode">Admin</button>
       <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode">🌙 Dark</button>
       </div>
+      </div>
     </div>
+    <a class="theme-toggle nav-action-btn nav-resume-btn" href="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/Anubhav_soam_resume.pdf?raw=1" download="Anubhav_soam_resume.pdf" target="_blank" rel="noreferrer noopener" aria-label="Download resume">📄 Resume</a>
   </nav>
 
   <main id="portfolio" class="tab-content active">
@@ -368,10 +371,10 @@
 
     <div class="blog-wrapper">
       <nav class="blog-nav">
-        <div class="nav-brand">✦ Anubhav's Blog</div>
+        <div class="nav-brand">Anubhav's Blog</div>
         <div class="nav-actions">
-          <span id="cloudStatus" class="cloud-status" title="Blog cloud sync status">☁ Local only</span>
-          <button id="syncNowBtn" class="btn btn-blue" onclick="syncCloudNow()" type="button" title="Sync now">⟳ Sync</button>
+          <span id="cloudStatus" class="cloud-status" title="Blog cloud sync status">Local only</span>
+          <button id="syncNowBtn" class="btn btn-blue" onclick="syncCloudNow()" type="button" title="Sync now">Sync</button>
         </div>
       </nav>
 
