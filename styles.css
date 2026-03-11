@@ -1409,7 +1409,7 @@ display: grid;
 #blog-tab .post-body {
   font-size: 1rem;
   line-height: 1.85;
-  color: rgba(240,244,255,0.88);
+  color: var(--text-primary);
   margin-bottom: 2.75rem;
   padding: 32px;
   border-radius: var(--radius-lg);

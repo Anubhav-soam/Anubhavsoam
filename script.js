@@ -72,8 +72,8 @@ const CLOUD_CONFIG = {
 
 const DEFAULT_DB = {
   topics: [
-    { id: 't1', name: 'Excel Terms & Concepts', emoji: '📊', desc: 'Master the building blocks of Excel from lookups to pivots.', cover: '' },
-    { id: 't2', name: 'Equity Research', emoji: '📈', desc: 'Break down financial statements and valuation frameworks.', cover: '' }
+    { id: 't1', name: 'Excel Terms & Concepts', emoji: '', desc: 'Master the building blocks of Excel from lookups to pivots.', cover: '' },
+    { id: 't2', name: 'Equity Research', emoji: '', desc: 'Break down financial statements and valuation frameworks.', cover: '' }
   ],
   posts: [
     {
@@ -114,14 +114,14 @@ let cloudSaveQueue = Promise.resolve();
 function setCloudStatus(mode, message) {
   cloudStatusState = { mode, message };
   const badge = document.getElementById('cloudStatus');
-  if (badge) badge.textContent = mode === 'cloud' ? `☁ ${message}` : `☁ ${message}`;
+  if (badge) badge.textContent = message;
 }
 
 function updateCloudControls() {
   const btn = document.getElementById('syncNowBtn');
   if (btn) btn.style.display = isCloudConfigured() ? 'inline-flex' : 'none';
   const badge = document.getElementById('cloudStatus');
-  if (badge) badge.textContent = `☁ ${cloudStatusState.message}`;
+  if (badge) badge.textContent = cloudStatusState.message;
 }
 
 function deepClone(v) {
@@ -220,7 +220,7 @@ function saveDB() {
 
 async function syncCloudNow() {
   if (!isCloudConfigured()) {
-    toast('⚠ Cloud DB not configured. Add BLOG_CLOUD_CONFIG first.');
+    toast('Cloud DB not configured. Add BLOG_CLOUD_CONFIG first.');
     setCloudStatus('local', 'Local only (not configured)');
     return;
   }
@@ -228,10 +228,10 @@ async function syncCloudNow() {
     setCloudStatus('cloud', 'Syncing…');
     await cloudSaveDB(DB);
     setCloudStatus('cloud', 'Connected');
-    toast('☁ Synced to cloud');
+    toast('Synced to cloud');
   } catch (err) {
     setCloudStatus('local', 'Cloud sync failed');
-    toast('❌ Cloud sync failed');
+    toast('Cloud sync failed');
     console.warn('Cloud sync failed:', err.message);
   }
 }
@@ -270,7 +270,7 @@ function toggleAdmin() {
   if (!blogState.isAdmin) {
     const pw = prompt('Enter admin password:');
     if (pw !== ADMIN_PASSWORD) {
-      toast('❌ Wrong password');
+      toast('Wrong password');
       return;
     }
   }
@@ -278,10 +278,10 @@ function toggleAdmin() {
   const adminBtn = document.getElementById('adminBtn');
   if (adminBtn) {
     adminBtn.classList.toggle('active', blogState.isAdmin);
-    adminBtn.textContent = blogState.isAdmin ? '⚙ Admin ON' : '⚙ Admin';
+    adminBtn.textContent = blogState.isAdmin ? 'Admin ON' : 'Admin';
   }
   renderBlog();
-  toast(blogState.isAdmin ? '🔓 Admin mode enabled' : '🔒 Admin mode disabled');
+  toast(blogState.isAdmin ? 'Admin mode enabled' : 'Admin mode disabled');
 }
 
 function showView(v, id) {
@@ -308,13 +308,12 @@ function renderTopics() {
     const coverHtml = t.cover ? `<img src="${t.cover}" class="topic-cover" alt="">` : '';
     return `<div class="glass topic-card" onclick="showView('posts','${t.id}')">
       ${coverHtml}
-      <span class="topic-emoji">${esc(t.emoji)}</span>
       <div class="topic-name">${esc(t.name)}</div>
       <div class="topic-desc">${esc(t.desc)}</div>
       <div class="topic-meta">${count} post${count !== 1 ? 's' : ''}</div>
       ${blogState.isAdmin ? `<div style="margin-top:14px;display:flex;gap:8px;" onclick="event.stopPropagation()">
-        <button class="btn btn-amber" onclick="openTopicModal('${t.id}')">✏ Edit</button>
-        <button class="btn btn-danger" onclick="deleteTopic('${t.id}')">🗑</button>
+        <button class="btn btn-amber" onclick="openTopicModal('${t.id}')">Edit</button>
+        <button class="btn btn-danger" onclick="deleteTopic('${t.id}')">Delete</button>
       </div>` : ''}
     </div>`;
   }).join('');
@@ -324,7 +323,7 @@ function renderTopics() {
     : '';
 
   const empty = DB.topics.length === 0 && !blogState.isAdmin
-    ? '<div class="empty-state"><div class="empty-icon">📂</div>No topics yet.</div>'
+    ? '<div class="empty-state"><div class="empty-icon">-</div>No topics yet.</div>'
     : '';
 
   return `<div class="section-title">Topics</div><div class="section-sub">// browse all blog categories</div>${empty}<div class="topics-grid">${cards}${addCard}</div>`;
@@ -337,20 +336,18 @@ function renderPosts() {
 
   const items = posts.map((p) => {
     const comments = (DB.comments[p.id] || []).length;
-    const thumb = p.cover ? `<img src="${p.cover}" class="post-thumb" alt="">` : `<div class="post-thumb-placeholder">${esc(topic.emoji)}</div>`;
     return `<div class="glass post-item" onclick="showView('single','${p.id}')">
-      ${thumb}
       <div class="post-info">
         <div class="post-title">${esc(p.title)}</div>
         <div class="post-excerpt">${esc(p.content.replace(/[#*>`-]/g, '').slice(0, 110))}…</div>
-        <div class="post-meta"><span>📅 ${fmtDate(p.date)}</span><span>♥ ${p.likes || 0}</span><span>💬 ${comments}</span></div>
+        <div class="post-meta"><span>Date: ${fmtDate(p.date)}</span><span>Likes: ${p.likes || 0}</span><span>Comments: ${comments}</span></div>
       </div>
     </div>`;
-  }).join('') || '<div class="empty-state"><div class="empty-icon">✍️</div>No posts yet.</div>';
+  }).join('') || '<div class="empty-state"><div class="empty-icon">-</div>No posts yet.</div>';
 
   return `<button class="back-btn" onclick="showView('topics')">← Back to Topics</button>
-  <div class="posts-header"><div><div class="section-title">${esc(topic.emoji)} ${esc(topic.name)}</div><div class="section-sub">${esc(topic.desc)}</div></div>
-  ${blogState.isAdmin ? '<button class="btn btn-green" onclick="openPostModal()">✍ New Post</button>' : ''}</div>${items}`;
+  <div class="posts-header"><div><div class="section-title">${esc(topic.name)}</div><div class="section-sub">${esc(topic.desc)}</div></div>
+  ${blogState.isAdmin ? '<button class="btn btn-green" onclick="openPostModal()">New Post</button>' : ''}</div>${items}`;
 }
 
 function renderSingle() {
@@ -363,16 +360,16 @@ function renderSingle() {
   const coverHtml = post.cover ? `<img src="${post.cover}" class="post-hero" alt="">` : '';
   const commentsList = comments.length
     ? comments.map((c) => `<div class="glass comment-item"><div class="comment-author">${esc(c.author || 'Anonymous')} · ${fmtDate(c.ts)}</div><div class="comment-text">${esc(c.text)}</div></div>`).join('')
-    : '<div class="empty-state" style="padding:24px 0"><div class="empty-icon">💬</div>No comments yet. Be first!</div>';
+    : '<div class="empty-state" style="padding:24px 0"><div class="empty-icon">-</div>No comments yet. Be first!</div>';
 
   return `<button class="back-btn" onclick="showView('posts','${post.topicId}')">← Back to ${esc(topic ? topic.name : 'Posts')}</button>
     ${coverHtml}
-    <div class="post-breadcrumb">${esc(topic ? `${topic.emoji} ${topic.name}` : '')}</div>
+    <div class="post-breadcrumb">${esc(topic ? topic.name : '')}</div>
     <h1 class="post-headline">${esc(post.title)}</h1>
-    <div class="post-byline"><span>📅 ${fmtDate(post.date)}</span><span id="likeCount">♥ ${post.likes || 0} likes</span><span>💬 ${comments.length} comments</span></div>
-    ${blogState.isAdmin ? `<div class="post-actions"><button class="btn btn-amber" onclick="openPostModal('${post.id}')">✏ Edit Post</button><button class="btn btn-danger" onclick="deletePost('${post.id}')">🗑 Delete</button></div>` : ''}
+    <div class="post-byline"><span>Date: ${fmtDate(post.date)}</span><span id="likeCount">Likes: ${post.likes || 0}</span><span>Comments: ${comments.length}</span></div>
+    ${blogState.isAdmin ? `<div class="post-actions"><button class="btn btn-amber" onclick="openPostModal('${post.id}')">Edit Post</button><button class="btn btn-danger" onclick="deletePost('${post.id}')">Delete</button></div>` : ''}
     <div class="glass post-body">${md2html(post.content)}</div>
-    <div class="like-row"><button class="like-btn${liked ? ' liked' : ''}" id="likeBtn" onclick="toggleLike('${post.id}')">${liked ? '♥ Liked' : '♡ Like this post'}</button></div>
+    <div class="like-row"><button class="like-btn${liked ? ' liked' : ''}" id="likeBtn" onclick="toggleLike('${post.id}')">${liked ? 'Liked' : 'Like this post'}</button></div>
     <div class="comments-section"><div class="comments-title">Comments (${comments.length})</div>
       <div class="glass comment-form">
         <label class="field-label">Your name (optional)</label>
@@ -402,7 +399,7 @@ function toggleLike(pid) {
 function submitComment(pid) {
   const text = document.getElementById('cText')?.value?.trim();
   if (!text) {
-    toast('⚠ Please write a comment first');
+    toast('Please write a comment first');
     return;
   }
   const author = document.getElementById('cName')?.value?.trim() || 'Anonymous';
@@ -410,7 +407,7 @@ function submitComment(pid) {
   DB.comments[pid].push({ author, text, ts: new Date().toISOString() });
   saveDB();
   renderBlog();
-  toast('💬 Comment posted!');
+  toast('Comment posted.');
 }
 
 function openTopicModal(id) {
@@ -419,7 +416,6 @@ function openTopicModal(id) {
   showModal(`<div class="modal-title">${t ? 'Edit Topic' : 'New Topic'}</div>
     <button class="modal-close" onclick="closeModal()">×</button>
     <label class="field-label">Topic Name</label><input class="field-input" id="tName" value="${esc(t?.name || '')}" placeholder="e.g. Excel Tips">
-    <label class="field-label">Emoji Icon</label><input class="field-input" id="tEmoji" value="${esc(t?.emoji || '📝')}" placeholder="📝" style="width:80px">
     <label class="field-label">Description</label><textarea class="field-input" id="tDesc" rows="2" placeholder="Short description…">${esc(t?.desc || '')}</textarea>
     <label class="field-label">Cover Image (optional)</label><img id="tImgPreview" class="img-preview" src="${t?.cover || ''}" style="${t?.cover ? 'display:block' : ''}">
     <input type="file" accept="image/*" onchange="previewImg(this,'tImgPreview','tImgData')" style="color:var(--text-secondary);font-size:0.82rem;margin-bottom:16px"><input type="hidden" id="tImgData" value="${esc(t?.cover || '')}">
@@ -429,13 +425,13 @@ function openTopicModal(id) {
 function saveTopic() {
   const name = document.getElementById('tName').value.trim();
   if (!name) {
-    toast('⚠ Topic name required');
+    toast('Topic name required');
     return;
   }
   const data = {
     id: blogState.editingTopic || uid(),
     name,
-    emoji: document.getElementById('tEmoji').value.trim() || '📝',
+    emoji: '',
     desc: document.getElementById('tDesc').value.trim(),
     cover: document.getElementById('tImgData').value
   };
@@ -446,7 +442,7 @@ function saveTopic() {
   saveDB();
   closeModal();
   renderBlog();
-  toast('✅ Topic saved!');
+  toast('Topic saved.');
 }
 
 function deleteTopic(id) {
@@ -455,13 +451,13 @@ function deleteTopic(id) {
   DB.posts = DB.posts.filter((p) => p.topicId !== id);
   saveDB();
   showView('topics');
-  toast('🗑 Topic deleted.');
+  toast('Topic deleted.');
 }
 
 function openPostModal(id) {
   blogState.editingPost = id || null;
   const p = id ? DB.posts.find((x) => x.id === id) : null;
-  const topicOptions = DB.topics.map((t) => `<option value="${t.id}"${(p?.topicId || blogState.activeTopic) === t.id ? ' selected' : ''}>${esc(`${t.emoji} ${t.name}`)}</option>`).join('');
+  const topicOptions = DB.topics.map((t) => `<option value="${t.id}"${(p?.topicId || blogState.activeTopic) === t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
   showModal(`<div class="modal-title">${p ? 'Edit Post' : 'New Post'}</div><button class="modal-close" onclick="closeModal()">×</button>
     <label class="field-label">Title</label><input class="field-input" id="pTitle" value="${esc(p?.title || '')}" placeholder="Post title…">
     <label class="field-label">Topic</label><select class="field-input" id="pTopic">${topicOptions}</select>
@@ -475,11 +471,11 @@ function savePost() {
   const title = document.getElementById('pTitle').value.trim();
   const content = document.getElementById('pContent').value.trim();
   if (!title) {
-    toast('⚠ Title required');
+    toast('Title required');
     return;
   }
   if (!content) {
-    toast('⚠ Content required');
+    toast('Content required');
     return;
   }
   const data = {
@@ -496,13 +492,13 @@ function savePost() {
     if (i >= 0) DB.posts[i] = data;
     closeModal();
     renderBlog();
-    toast('✅ Post updated!');
+    toast('Post updated.');
   } else {
     DB.posts.push(data);
     saveDB();
     closeModal();
     showView('single', data.id);
-    toast('🚀 Post published!');
+    toast('Post published.');
   }
   saveDB();
 }
@@ -514,7 +510,7 @@ function deletePost(id) {
   delete DB.comments[id];
   saveDB();
   showView('posts', tid);
-  toast('🗑 Post deleted.');
+  toast('Post deleted.');
 }
 
 function previewImg(input, previewId, hiddenId) {
