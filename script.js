@@ -19,7 +19,45 @@ function showTab(tab) {
     initBlogApp();
   }
 
+  closeNavMenu();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+
+function toggleNavMenu() {
+  const nav = document.querySelector('.main-nav');
+  const btn = document.getElementById('nav-toggle');
+  if (!nav || !btn) return;
+  const open = nav.classList.toggle('nav-open');
+  btn.setAttribute('aria-expanded', String(open));
+  btn.textContent = open ? '✕' : '☰';
+}
+
+function closeNavMenu() {
+  const nav = document.querySelector('.main-nav');
+  const btn = document.getElementById('nav-toggle');
+  if (!nav || !btn) return;
+  nav.classList.remove('nav-open');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.textContent = '☰';
+}
+
+function initNavMenu() {
+  const btn = document.getElementById('nav-toggle');
+  if (!btn) return;
+
+  btn.addEventListener('click', toggleNavMenu);
+
+  document.addEventListener('click', (e) => {
+    const nav = document.querySelector('.main-nav');
+    if (!nav || !nav.classList.contains('nav-open')) return;
+    if (!nav.contains(e.target)) closeNavMenu();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeNavMenu();
+  });
 }
 
 const ADMIN_PASSWORD = 'admin123';
@@ -398,6 +436,7 @@ function initBlogApp() {
 (function init() {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   applyTheme(savedTheme);
+  initNavMenu();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
