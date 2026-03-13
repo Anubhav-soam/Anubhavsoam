@@ -116,6 +116,21 @@ async function resolveCertImage(certItem) {
   return null;
 }
 
+
+function toRawGithubUrl(url) {
+  if (!url) return '';
+  if (url.includes('raw.githubusercontent.com')) return url;
+  const blobMarker = 'github.com/';
+  if (!url.includes(blobMarker) || !url.includes('/blob/')) return url;
+  const parts = url.split('github.com/')[1].split('/');
+  if (parts.length < 5) return url;
+  const owner = parts[0];
+  const repo = parts[1];
+  const branch = parts[3];
+  const path = parts.slice(4).join('/');
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
+}
+
 function ensureCertPopup() {
   let popup = document.getElementById('certHoverPopup');
   if (popup) return popup;
@@ -126,6 +141,7 @@ function ensureCertPopup() {
   popup.innerHTML = `
     <div class="cert-hover-title"></div>
     <img class="cert-hover-image" alt="Certificate preview" loading="lazy" />
+    <iframe class="cert-hover-pdf" title="Certificate PDF preview"></iframe>
     <div class="cert-hover-msg"></div>
   `;
   document.body.appendChild(popup);
@@ -139,6 +155,7 @@ function initCertificatePreview() {
   const popup = ensureCertPopup();
   const title = popup.querySelector('.cert-hover-title');
   const image = popup.querySelector('.cert-hover-image');
+  const pdf = popup.querySelector('.cert-hover-pdf');
   const msg = popup.querySelector('.cert-hover-msg');
 
   certGrid.querySelectorAll('.cert-item[data-cert-key]').forEach((certItem) => {
@@ -149,11 +166,29 @@ function initCertificatePreview() {
       title.textContent = certName;
       msg.textContent = 'Loading certificate...';
       image.removeAttribute('src');
+      pdf.removeAttribute('src');
+      pdf.style.display = 'none';
+      image.style.display = 'block';
+
+      const directUrl = certItem.dataset.certUrl || '';
+      if (directUrl) {
+        const previewUrl = toRawGithubUrl(directUrl);
+        if (/\.pdf($|\?)/i.test(previewUrl)) {
+          pdf.src = previewUrl;
+          pdf.style.display = 'block';
+          image.style.display = 'none';
+          msg.textContent = '';
+          return;
+        }
+        image.src = previewUrl;
+        msg.textContent = '';
+        return;
+      }
 
       const src = await resolveCertImage(certItem);
       if (!src) {
         popup.classList.add('missing');
-        msg.textContent = 'Certificate image not found in GitHub certificate folder.';
+        msg.textContent = 'Preview configured only for Alteryx and Derivatives for now.';
         return;
       }
 
@@ -166,6 +201,9 @@ function initCertificatePreview() {
     popup.classList.remove('visible');
     popup.classList.remove('missing');
     image.removeAttribute('src');
+    pdf.removeAttribute('src');
+    pdf.style.display = 'none';
+    image.style.display = 'block';
   });
 }
 

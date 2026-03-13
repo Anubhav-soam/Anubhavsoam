@@ -1903,6 +1903,7 @@ display: grid;
   padding: 0.8rem;
   display: none;
   backdrop-filter: blur(8px);
+  pointer-events: none;
 }
 
 .cert-hover-popup.visible {
@@ -1928,13 +1929,23 @@ display: grid;
   display: block;
 }
 
+.cert-hover-pdf {
+  width: 100%;
+  height: min(64vh, 460px);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, #ffffff2e);
+  background: #0f1116;
+  display: none;
+}
+
 .cert-hover-msg {
   margin-top: 0.45rem;
   font-size: 0.78rem;
   color: var(--muted);
 }
 
-.cert-hover-popup.missing .cert-hover-image {
+.cert-hover-popup.missing .cert-hover-image,
+.cert-hover-popup.missing .cert-hover-pdf {
   display: none;
 }
 
