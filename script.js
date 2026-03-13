@@ -1083,8 +1083,6 @@ async function initBlogApp() {
   initProjectsMenu();
   initResumeGraffiti();
   initCertificatePreview();
-  initDCFModel();
-  initPFMManager();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
