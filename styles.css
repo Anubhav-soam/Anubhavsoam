@@ -1019,6 +1019,53 @@ display: grid;
   background: color-mix(in srgb, var(--card) 86%, var(--accent3));
 }
 
+
+.nav-projects-dropdown {
+  position: relative;
+}
+
+.nav-projects-btn {
+  text-decoration: none;
+  color: var(--muted);
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: 0.25s ease;
+  background: transparent;
+  cursor: pointer;
+}
+
+.nav-projects-btn:hover,
+.nav-projects-dropdown.open .nav-projects-btn {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent3) 60%, var(--border));
+  box-shadow: 0 0 16px rgba(127, 255, 207, 0.2);
+  background: color-mix(in srgb, var(--card) 86%, var(--accent3));
+}
+
+.nav-projects-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  min-width: 230px;
+  z-index: 1300;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 92%, var(--card));
+  box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+  padding: 0.45rem;
+}
+
+.nav-projects-menu a {
+  display: block;
+  border-radius: 10px;
+}
+
+.nav-projects-dropdown.open .nav-projects-menu {
+  display: block;
+}
+
 .theme-toggle {
   border: 1px solid var(--border);
   background: var(--card);
@@ -2008,5 +2055,185 @@ display: grid;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
+  }
+}
+
+
+/* PROJECT TOOLS */
+.projects-lab-grid {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.tool-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.4rem;
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+}
+
+.tool-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.tool-sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 0.8rem;
+}
+
+.tool-grid label,
+.pfm-inline-grid input,
+.pfm-inline-grid select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.tool-grid input,
+.pfm-inline-grid input,
+.pfm-inline-grid select,
+.pfm-expenses input,
+.pfm-loans input,
+.pfm-goal-item input {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  color: var(--text);
+  padding: 0.5rem 0.6rem;
+}
+
+.tool-kpis {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 0.75rem;
+}
+
+.tool-kpis div {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.tool-kpis span {
+  font-size: 0.72rem;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.tool-kpis strong {
+  font-size: 1rem;
+}
+
+.tool-table-wrap {
+  margin-top: 1rem;
+  overflow: auto;
+}
+
+.tool-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tool-table th,
+.tool-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.6rem;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.pfm-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.pfm-tab {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pfm-tab.active {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent2) 60%, var(--border));
+  background: color-mix(in srgb, var(--accent2) 14%, transparent);
+}
+
+.pfm-pane { display: none; }
+.pfm-pane.active { display: block; }
+
+.pfm-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+}
+
+.pfm-list {
+  margin: 0.5rem 0 1rem;
+}
+
+.pfm-row {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.45rem 0.6rem;
+  margin-bottom: 0.45rem;
+}
+
+.pfm-row button {
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+}
+
+.pfm-expenses,
+.pfm-loans,
+.pfm-goal-grid {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.pfm-loan-row,
+.pfm-goal-item {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.pfm-empty {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+  .tool-grid,
+  .pfm-inline-grid,
+  .pfm-loan-row,
+  .pfm-goal-item {
+    grid-template-columns: 1fr;
   }
 }

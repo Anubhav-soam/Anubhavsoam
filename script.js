@@ -21,6 +21,7 @@ function showTab(tab) {
 
   closeNavMenu();
   closeQuickActions();
+  closeProjectsMenu();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -288,6 +289,282 @@ function initNavMenu() {
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) closeNavMenu();
   });
+}
+
+
+function toggleProjectsMenu() {
+  const wrap = document.getElementById('navProjectsDropdown');
+  const btn = document.getElementById('projectsMenuBtn');
+  if (!wrap || !btn) return;
+  const open = wrap.classList.toggle('open');
+  btn.setAttribute('aria-expanded', String(open));
+}
+
+function closeProjectsMenu() {
+  const wrap = document.getElementById('navProjectsDropdown');
+  const btn = document.getElementById('projectsMenuBtn');
+  if (!wrap || !btn) return;
+  wrap.classList.remove('open');
+  btn.setAttribute('aria-expanded', 'false');
+}
+
+function initProjectsMenu() {
+  const btn = document.getElementById('projectsMenuBtn');
+  if (!btn) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleProjectsMenu();
+  });
+
+  document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('navProjectsDropdown');
+    if (!wrap || !wrap.classList.contains('open')) return;
+    if (!wrap.contains(e.target)) closeProjectsMenu();
+  });
+}
+
+function goToProjectTool(id) {
+  const el = document.getElementById(id);
+  closeProjectsMenu();
+  closeQuickActions();
+  closeNavMenu();
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function formatINR(value) {
+  const n = Number(value || 0);
+  return `₹ ${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+}
+
+function initDCFModel() {
+  const inputIds = ['dcfRevenue','dcfGrowth','dcfMargin','dcfTax','dcfCapex','dcfNwc','dcfWacc','dcfTerminalGrowth','dcfNetDebt','dcfShares'];
+  const inputs = inputIds.map((id) => document.getElementById(id)).filter(Boolean);
+  if (!inputs.length) return;
+
+  function calc() {
+    const revenue0 = Number(document.getElementById('dcfRevenue').value || 0);
+    const growth = Number(document.getElementById('dcfGrowth').value || 0) / 100;
+    const margin = Number(document.getElementById('dcfMargin').value || 0) / 100;
+    const tax = Number(document.getElementById('dcfTax').value || 0) / 100;
+    const capexPct = Number(document.getElementById('dcfCapex').value || 0) / 100;
+    const nwcPct = Number(document.getElementById('dcfNwc').value || 0) / 100;
+    const wacc = Math.max(0.01, Number(document.getElementById('dcfWacc').value || 0) / 100);
+    const tg = Number(document.getElementById('dcfTerminalGrowth').value || 0) / 100;
+    const netDebt = Number(document.getElementById('dcfNetDebt').value || 0);
+    const shares = Math.max(0.1, Number(document.getElementById('dcfShares').value || 1));
+
+    let revenue = revenue0;
+    const years = 5;
+    const rows = [];
+    let ev = 0;
+
+    for (let y = 1; y <= years; y += 1) {
+      revenue *= (1 + growth);
+      const ebit = revenue * margin;
+      const nopat = ebit * (1 - tax);
+      const capex = revenue * capexPct;
+      const nwc = revenue * nwcPct;
+      const fcff = nopat - capex - nwc;
+      const pv = fcff / ((1 + wacc) ** y);
+      ev += pv;
+      rows.push({ y, revenue, fcff, pv });
+    }
+
+    const terminalFcf = rows[rows.length - 1].fcff * (1 + tg);
+    const terminalValue = terminalFcf / Math.max(0.01, (wacc - tg));
+    const pvTerminal = terminalValue / ((1 + wacc) ** years);
+    ev += pvTerminal;
+    const equity = ev - netDebt;
+    const perShare = equity / shares;
+
+    document.getElementById('dcfEV').textContent = formatINR(ev) + ' Cr';
+    document.getElementById('dcfEquity').textContent = formatINR(equity) + ' Cr';
+    document.getElementById('dcfPerShare').textContent = formatINR(perShare);
+
+    const tbody = document.getElementById('dcfProjectionBody');
+    if (tbody) {
+      tbody.innerHTML = rows.map((r) => `<tr><td>Year ${r.y}</td><td>${formatINR(r.revenue)}</td><td>${formatINR(r.fcff)}</td><td>${formatINR(r.pv)}</td></tr>`).join('')
+        + `<tr><td>Terminal PV</td><td>-</td><td>-</td><td>${formatINR(pvTerminal)}</td></tr>`;
+    }
+  }
+
+  inputs.forEach((i) => i.addEventListener('input', calc));
+  calc();
+}
+
+const pfmState = {
+  family: [],
+  income: [],
+  expenseMaster: [
+    ['Housing', 'Rent'], ['Food', 'Groceries'], ['Transport', 'Fuel'], ['Health', 'Medicines'], ['Lifestyle', 'Subscriptions']
+  ],
+  expenses: [0, 0, 0, 0, 0],
+  loanMaster: ['Home Loan', 'Car Loan', 'Personal Loan'],
+  loans: [
+    { amount: 0, emi: 0, endDate: '' },
+    { amount: 0, emi: 0, endDate: '' },
+    { amount: 0, emi: 0, endDate: '' }
+  ],
+  goals: [
+    { name: 'Buying Home', amount: 0, years: 0 },
+    { name: 'Child Education', amount: 0, years: 0 },
+    { name: 'Retirement Corpus', amount: 0, years: 0 }
+  ]
+};
+
+function initPFMManager() {
+  const root = document.getElementById('pfm-tool');
+  if (!root) return;
+
+  root.querySelectorAll('.pfm-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      root.querySelectorAll('.pfm-tab').forEach((b) => b.classList.remove('active'));
+      root.querySelectorAll('.pfm-pane').forEach((p) => p.classList.remove('active'));
+      btn.classList.add('active');
+      root.querySelector(`#pfm-${btn.dataset.pfmTab}`)?.classList.add('active');
+    });
+  });
+
+  document.getElementById('pfmAddFamily')?.addEventListener('click', () => {
+    const name = document.getElementById('pfmFamilyName').value.trim();
+    if (!name) return;
+    const relation = document.getElementById('pfmFamilyRelation').value;
+    const dob = document.getElementById('pfmFamilyDob').value;
+    const gender = document.getElementById('pfmFamilyGender').value;
+    const age = dob ? new Date().getFullYear() - new Date(dob).getFullYear() : 0;
+    pfmState.family.push({ name, relation, dob, age, gender });
+    document.getElementById('pfmFamilyName').value = '';
+    renderPFM();
+  });
+
+  document.getElementById('pfmAddIncome')?.addEventListener('click', () => {
+    const name = document.getElementById('pfmIncomeName').value.trim();
+    const age = Number(document.getElementById('pfmIncomeAge').value || 0);
+    const income = Number(document.getElementById('pfmIncomeValue').value || 0);
+    if (!name || !income) return;
+    pfmState.income.push({ name, age, income });
+    document.getElementById('pfmIncomeName').value = '';
+    document.getElementById('pfmIncomeAge').value = '';
+    document.getElementById('pfmIncomeValue').value = '';
+    renderPFM();
+  });
+
+  const expWrap = document.getElementById('pfmExpenseInputs');
+  if (expWrap) {
+    expWrap.innerHTML = '<h4>Monthly Expenses</h4>' + pfmState.expenseMaster.map((e, i) =>
+      `<label>${e[0]} - ${e[1]}<input type="number" data-exp-idx="${i}" value="${pfmState.expenses[i]}" step="500"></label>`
+    ).join('');
+    expWrap.querySelectorAll('input[data-exp-idx]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.expenses[Number(el.dataset.expIdx)] = Number(el.value || 0);
+      renderPFM();
+    }));
+  }
+
+  const loanWrap = document.getElementById('pfmLoanInputs');
+  if (loanWrap) {
+    loanWrap.innerHTML = '<h4>Current Loans</h4>' + pfmState.loanMaster.map((loan, i) =>
+      `<div class="pfm-loan-row"><span>${loan}</span><input type="number" data-loan-amt="${i}" placeholder="Amount" value="${pfmState.loans[i].amount}"><input type="number" data-loan-emi="${i}" placeholder="EMI" value="${pfmState.loans[i].emi}"></div>`
+    ).join('');
+    loanWrap.querySelectorAll('input[data-loan-amt]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.loans[Number(el.dataset.loanAmt)].amount = Number(el.value || 0);
+      renderPFM();
+    }));
+    loanWrap.querySelectorAll('input[data-loan-emi]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.loans[Number(el.dataset.loanEmi)].emi = Number(el.value || 0);
+      renderPFM();
+    }));
+  }
+
+  const goalWrap = document.getElementById('pfmGoalInputs');
+  if (goalWrap) {
+    goalWrap.innerHTML = pfmState.goals.map((g, i) =>
+      `<div class="pfm-goal-item"><strong>${g.name}</strong><input type="number" data-goal-amt="${i}" value="${g.amount}" placeholder="Amount today"><input type="number" data-goal-years="${i}" value="${g.years}" placeholder="Years"></div>`
+    ).join('');
+    goalWrap.querySelectorAll('input[data-goal-amt]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.goals[Number(el.dataset.goalAmt)].amount = Number(el.value || 0);
+      renderPFM();
+    }));
+    goalWrap.querySelectorAll('input[data-goal-years]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.goals[Number(el.dataset.goalYears)].years = Number(el.value || 0);
+      renderPFM();
+    }));
+  }
+
+  ['pfmInflation','pfmCurrentAge','pfmRetAge','pfmStartCorpus','pfmReturn'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', renderPFM);
+  });
+
+  document.getElementById('pfmDownloadSummary')?.addEventListener('click', () => {
+    const summary = buildPFMSummary();
+    const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pfm_summary.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  renderPFM();
+}
+
+function buildPFMSummary() {
+  const monthlyIncome = pfmState.income.reduce((a, b) => a + (b.income || 0), 0) / 12;
+  const monthlyExpense = pfmState.expenses.reduce((a, b) => a + b, 0);
+  const monthlyEmi = pfmState.loans.reduce((a, b) => a + (b.emi || 0), 0);
+  const monthlyNet = monthlyIncome - monthlyExpense - monthlyEmi;
+
+  const inflation = Number(document.getElementById('pfmInflation')?.value || 5) / 100;
+  const annualReturn = Number(document.getElementById('pfmReturn')?.value || 12) / 100;
+  const monthlyReturn = annualReturn / 12;
+  const goalRows = pfmState.goals.map((g) => {
+    const future = g.amount > 0 && g.years > 0 ? g.amount * ((1 + inflation) ** g.years) : 0;
+    const months = g.years * 12;
+    const sip = future > 0 && months > 0 ? (future * monthlyReturn) / (((1 + monthlyReturn) ** months) - 1 || 1) : 0;
+    return { ...g, future, sip };
+  });
+  const totalGoalFuture = goalRows.reduce((a, g) => a + g.future, 0);
+  const totalSip = goalRows.reduce((a, g) => a + g.sip, 0);
+
+  const currentAge = Number(document.getElementById('pfmCurrentAge')?.value || 30);
+  const retAge = Number(document.getElementById('pfmRetAge')?.value || 60);
+  const years = Math.max(0, retAge - currentAge);
+  let wealth = Number(document.getElementById('pfmStartCorpus')?.value || 0);
+  const projection = [];
+  for (let y = 1; y <= years; y += 1) {
+    const opening = wealth;
+    wealth = wealth * (1 + annualReturn) + (totalSip * 12);
+    projection.push({ year: y, opening, sip: totalSip * 12, closing: wealth });
+  }
+
+  return { monthlyIncome, monthlyExpense, monthlyEmi, monthlyNet, totalGoalFuture, totalSip, projectedCorpus: wealth, goalRows, projection };
+}
+
+function renderPFM() {
+  const s = buildPFMSummary();
+  const family = document.getElementById('pfmFamilyList');
+  if (family) family.innerHTML = pfmState.family.map((f, i) => `<div class="pfm-row"><span>${f.name} (${f.relation}, ${f.age})</span><button type="button" onclick="pfmState.family.splice(${i},1);renderPFM();">✕</button></div>`).join('') || '<div class="pfm-empty">No family members yet.</div>';
+  const incomes = document.getElementById('pfmIncomeList');
+  if (incomes) incomes.innerHTML = pfmState.income.map((f, i) => `<div class="pfm-row"><span>${f.name} · ${formatINR(f.income)}/yr</span><button type="button" onclick="pfmState.income.splice(${i},1);renderPFM();">✕</button></div>`).join('') || '<div class="pfm-empty">No income entries yet.</div>';
+
+  const map = [
+    ['pfmMonthlyIncome', s.monthlyIncome],
+    ['pfmMonthlyExpense', s.monthlyExpense],
+    ['pfmMonthlyEmi', s.monthlyEmi],
+    ['pfmMonthlyNet', s.monthlyNet],
+    ['pfmGoalFutureTotal', s.totalGoalFuture],
+    ['pfmSipTotal', s.totalSip],
+    ['pfmSummaryGoal', s.totalGoalFuture],
+    ['pfmSummaryProjected', s.projectedCorpus],
+    ['pfmSummaryGap', s.projectedCorpus - s.totalGoalFuture]
+  ];
+  map.forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = formatINR(val);
+  });
+
+  const body = document.getElementById('pfmProjectionBody');
+  if (body) body.innerHTML = s.projection.map((r) => `<tr><td>${r.year}</td><td>${formatINR(r.opening)}</td><td>${formatINR(r.sip)}</td><td>${formatINR(r.closing)}</td></tr>`).join('');
 }
 
 const ADMIN_PASSWORD = 'admin123';
@@ -803,8 +1080,11 @@ async function initBlogApp() {
   applyTheme(savedTheme);
   initNavMenu();
   initQuickActions();
+  initProjectsMenu();
   initResumeGraffiti();
   initCertificatePreview();
+  initDCFModel();
+  initPFMManager();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
