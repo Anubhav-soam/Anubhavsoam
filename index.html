@@ -15,7 +15,14 @@
     <div id="nav-collapsible" class="nav-collapsible">
       <div class="nav-links">
       <a href="#" class="active" onclick="showTab('portfolio'); return false;">My Portfolio</a>
-      <a href="#" onclick="showTab('blog-tab'); return false;">Blog</a>
+      <a href="Blog/">Blog</a>
+      <div class="nav-projects-dropdown" id="navProjectsDropdown">
+        <button id="projectsMenuBtn" class="nav-projects-btn" type="button" aria-expanded="false" aria-controls="projectsMenu">Projects ▾</button>
+        <div class="nav-projects-menu" id="projectsMenu">
+          <a href="projects/dcf-modeling/">DCF Modeling</a>
+          <a href="projects/personal-finance-manager/">Personal Finance Manager</a>
+        </div>
+      </div>
       </div>
       <div class="nav-actions-wrap">
       <button id="nav-actions-toggle" class="nav-actions-toggle" aria-label="Toggle quick actions" aria-expanded="false" aria-controls="nav-actions-panel">Quick Actions</button>
@@ -25,7 +32,7 @@
       </div>
       </div>
     </div>
-    <a class="theme-toggle nav-action-btn nav-resume-btn" href="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/Anubhav_soam_resume.pdf?raw=1" download="Anubhav_soam_resume.pdf" target="_blank" rel="noreferrer noopener" aria-label="Download resume">📄 Resume</a>
+    <a id="resumeBtn" class="theme-toggle nav-action-btn nav-resume-btn" href="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/Anubhav_soam_resume.pdf?raw=1" download="Anubhav_soam_resume.pdf" target="_blank" rel="noreferrer noopener" aria-label="Download resume">📄 Resume</a>
   </nav>
 
   <main id="portfolio" class="tab-content active">
@@ -233,11 +240,121 @@
     </div>
   </section>
 
+  <!-- PROJECT TOOLS -->
+  <section id="projects-lab" style="background:var(--surface);max-width:100%;padding:5rem 0;">
+    <div style="max-width:1200px;margin:0 auto;padding:0 3rem;">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2 class="section-title">Projects Lab</h2>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="projects-lab-grid">
+        <article class="tool-card" id="dcf-modeling">
+          <h3 class="tool-title">Automated DCF Modeling</h3>
+          <p class="tool-sub">Enter assumptions once — valuation and projection update automatically.</p>
+          <div class="tool-grid">
+            <label>Revenue (₹ Cr)<input id="dcfRevenue" type="number" value="500" step="10"></label>
+            <label>Growth %<input id="dcfGrowth" type="number" value="12" step="0.1"></label>
+            <label>EBIT Margin %<input id="dcfMargin" type="number" value="22" step="0.1"></label>
+            <label>Tax %<input id="dcfTax" type="number" value="25" step="0.1"></label>
+            <label>Capex % of Revenue<input id="dcfCapex" type="number" value="5" step="0.1"></label>
+            <label>NWC % of Revenue<input id="dcfNwc" type="number" value="2" step="0.1"></label>
+            <label>WACC %<input id="dcfWacc" type="number" value="11" step="0.1"></label>
+            <label>Terminal Growth %<input id="dcfTerminalGrowth" type="number" value="4" step="0.1"></label>
+            <label>Net Debt (₹ Cr)<input id="dcfNetDebt" type="number" value="120" step="1"></label>
+            <label>Shares Out. (Cr)<input id="dcfShares" type="number" value="25" step="0.1"></label>
+          </div>
+          <div class="tool-kpis">
+            <div><span>Enterprise Value</span><strong id="dcfEV">-</strong></div>
+            <div><span>Equity Value</span><strong id="dcfEquity">-</strong></div>
+            <div><span>Intrinsic Value / Share</span><strong id="dcfPerShare">-</strong></div>
+          </div>
+          <div class="tool-table-wrap">
+            <table class="tool-table">
+              <thead><tr><th>Year</th><th>Revenue</th><th>FCFF</th><th>PV of FCFF</th></tr></thead>
+              <tbody id="dcfProjectionBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="tool-card" id="pfm-tool">
+          <h3 class="tool-title">Personal Finance Manager (Web)</h3>
+          <p class="tool-sub">Client profile, goals, planning and summary in one browser tool.</p>
+          <div class="pfm-tabs">
+            <button class="pfm-tab active" data-pfm-tab="profile" type="button">Client Profile</button>
+            <button class="pfm-tab" data-pfm-tab="goals" type="button">Personal Goals</button>
+            <button class="pfm-tab" data-pfm-tab="planning" type="button">Financial Planning</button>
+            <button class="pfm-tab" data-pfm-tab="summary" type="button">Summary</button>
+          </div>
+
+          <div class="pfm-pane active" id="pfm-profile">
+            <div class="pfm-inline-grid">
+              <input id="pfmFamilyName" placeholder="Family member name">
+              <select id="pfmFamilyRelation"><option>Head</option><option>Spouse</option><option>Son</option><option>Daughter</option></select>
+              <input id="pfmFamilyDob" type="date">
+              <select id="pfmFamilyGender"><option>Male</option><option>Female</option></select>
+              <button class="btn btn-blue" id="pfmAddFamily" type="button">Add Family</button>
+            </div>
+            <div id="pfmFamilyList" class="pfm-list"></div>
+
+            <div class="pfm-inline-grid">
+              <input id="pfmIncomeName" placeholder="Earning member name">
+              <input id="pfmIncomeAge" type="number" placeholder="Age">
+              <input id="pfmIncomeValue" type="number" placeholder="Annual Income">
+              <button class="btn btn-green" id="pfmAddIncome" type="button">Add Income</button>
+            </div>
+            <div id="pfmIncomeList" class="pfm-list"></div>
+
+            <div class="pfm-expenses" id="pfmExpenseInputs"></div>
+            <div class="pfm-loans" id="pfmLoanInputs"></div>
+            <div class="tool-kpis">
+              <div><span>Monthly Income</span><strong id="pfmMonthlyIncome">-</strong></div>
+              <div><span>Monthly Expenses</span><strong id="pfmMonthlyExpense">-</strong></div>
+              <div><span>Monthly EMI</span><strong id="pfmMonthlyEmi">-</strong></div>
+              <div><span>Net Monthly Savings</span><strong id="pfmMonthlyNet">-</strong></div>
+            </div>
+          </div>
+
+          <div class="pfm-pane" id="pfm-goals">
+            <div class="pfm-inline-grid">
+              <input id="pfmInflation" type="number" value="5" step="0.1" placeholder="Inflation %">
+              <input id="pfmCurrentAge" type="number" value="30" placeholder="Current Age">
+              <input id="pfmRetAge" type="number" value="60" placeholder="Retirement Age">
+            </div>
+            <div id="pfmGoalInputs" class="pfm-goal-grid"></div>
+            <div class="tool-kpis">
+              <div><span>Total Goal Corpus (Future)</span><strong id="pfmGoalFutureTotal">-</strong></div>
+              <div><span>Total Monthly SIP Required</span><strong id="pfmSipTotal">-</strong></div>
+            </div>
+          </div>
+
+          <div class="pfm-pane" id="pfm-planning">
+            <div class="pfm-inline-grid">
+              <input id="pfmStartCorpus" type="number" value="0" placeholder="Current Corpus">
+              <input id="pfmReturn" type="number" value="12" step="0.1" placeholder="Expected Return %">
+            </div>
+            <div class="tool-table-wrap"><table class="tool-table"><thead><tr><th>Year</th><th>Opening</th><th>SIP</th><th>Closing</th></tr></thead><tbody id="pfmProjectionBody"></tbody></table></div>
+          </div>
+
+          <div class="pfm-pane" id="pfm-summary">
+            <div class="tool-kpis">
+              <div><span>Goal Corpus Required</span><strong id="pfmSummaryGoal">-</strong></div>
+              <div><span>Projected Corpus</span><strong id="pfmSummaryProjected">-</strong></div>
+              <div><span>Gap / Surplus</span><strong id="pfmSummaryGap">-</strong></div>
+            </div>
+            <button class="btn btn-amber" id="pfmDownloadSummary" type="button">Download Summary (JSON)</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <!-- EDUCATION -->
   <section id="education" style="background:var(--surface);max-width:100%;padding:5rem 0;">
     <div style="max-width:1200px;margin:0 auto;padding:0 3rem;">
       <div class="section-header">
-        <span class="section-num">04</span>
+        <span class="section-num">05</span>
         <h2 class="section-title">Education</h2>
         <div class="section-line"></div>
       </div>
@@ -272,16 +389,17 @@
 
         <div>
           <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:1.5rem;color:var(--muted);">Certifications</h3>
-          <div class="cert-grid">
-            <div class="cert-item">Alteryx Designer Core</div>
-            <div class="cert-item">Derivatives – Options & Futures</div>
-            <div class="cert-item">NPTEL – DBMS</div>
-            <div class="cert-item">NPTEL – DSA using Python</div>
-            <div class="cert-item">Financial Modelling</div>
-            <div class="cert-item">Investment Banking Analysis</div>
-            <div class="cert-item">Power BI</div>
-            <div class="cert-item">NISM – SEBI Investors Module</div>
+          <div class="cert-grid" id="certGrid">
+            <div class="cert-item" data-cert-key="alteryx-designer-core" data-cert-file="alteryx-designer-core" data-cert-url="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/certificate/Alteryx_Designer_Core_Certification_Badge20241225-27-m3tjla.pdf">Alteryx Designer Core</div>
+            <div class="cert-item" data-cert-key="derivatives-options-futures" data-cert-file="derivatives-options-futures" data-cert-url="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/certificate/derivatives.pdf">Derivatives – Options & Futures</div>
+            <div class="cert-item" data-cert-key="nptel-dbms" data-cert-file="nptel-dbms">NPTEL – DBMS</div>
+            <div class="cert-item" data-cert-key="nptel-dsa-using-python" data-cert-file="nptel-dsa-using-python">NPTEL – DSA using Python</div>
+            <div class="cert-item" data-cert-key="financial-modelling" data-cert-file="financial-modelling">Financial Modelling</div>
+            <div class="cert-item" data-cert-key="investment-banking-analysis" data-cert-file="investment-banking-analysis">Investment Banking Analysis</div>
+            <div class="cert-item" data-cert-key="power-bi" data-cert-file="power-bi">Power BI</div>
+            <div class="cert-item" data-cert-key="nism-sebi-investors-module" data-cert-file="nism-sebi-investors-module">NISM – SEBI Investors Module</div>
           </div>
+
 
           <div class="achievement-card" style="margin-top:2rem;">
             <h3>🏆 Research Paper Publication</h3>
@@ -296,7 +414,7 @@
   <!-- CONTACT -->
   <section id="contact">
     <div class="section-header">
-      <span class="section-num">05</span>
+      <span class="section-num">06</span>
       <h2 class="section-title">Contact</h2>
       <div class="section-line"></div>
     </div>
