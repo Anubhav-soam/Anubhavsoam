@@ -26,6 +26,60 @@ function showTab(tab) {
 
 
 
+
+function popResumeGraffiti() {
+  const layer = document.createElement('div');
+  layer.className = 'resume-graffiti-layer';
+
+  const wall = document.createElement('div');
+  wall.className = 'graffiti-wall';
+
+  const tag = document.createElement('div');
+  tag.className = 'resume-graffiti-tag';
+
+  const letters = 'RESUME'.split('');
+  letters.forEach((char, idx) => {
+    const letter = document.createElement('span');
+    letter.className = 'tag-letter';
+    letter.style.setProperty('--i', String(idx));
+    letter.textContent = char;
+    tag.appendChild(letter);
+  });
+
+  const drips = document.createElement('div');
+  drips.className = 'graffiti-drips';
+  drips.innerHTML = '<i></i><i></i><i></i><i></i>';
+  tag.appendChild(drips);
+
+  for (let i = 0; i < 18; i += 1) {
+    const splat = document.createElement('span');
+    splat.className = 'paint-splat';
+    splat.style.setProperty('--x', `${Math.random() * 100}%`);
+    splat.style.setProperty('--y', `${Math.random() * 100}%`);
+    splat.style.setProperty('--s', `${0.5 + Math.random() * 1.8}`);
+    splat.style.setProperty('--d', `${Math.random() * 420}ms`);
+    wall.appendChild(splat);
+  }
+
+  wall.appendChild(tag);
+  layer.appendChild(wall);
+  document.body.appendChild(layer);
+
+  setTimeout(() => layer.classList.add('fade-out'), 1450);
+  setTimeout(() => layer.remove(), 1850);
+}
+
+function initResumeGraffiti() {
+  const resumeBtn = document.getElementById('resumeBtn');
+  if (!resumeBtn) return;
+
+  resumeBtn.addEventListener('click', () => {
+    popResumeGraffiti();
+    closeQuickActions();
+    closeNavMenu();
+  });
+}
+
 function toggleNavMenu() {
   const nav = document.querySelector('.main-nav');
   const btn = document.getElementById('nav-toggle');
@@ -590,6 +644,7 @@ async function initBlogApp() {
   applyTheme(savedTheme);
   initNavMenu();
   initQuickActions();
+  initResumeGraffiti();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {

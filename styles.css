@@ -1838,3 +1838,125 @@ display: grid;
   .theme-toggle { padding: 0.45rem 0.7rem; font-size: 0.72rem; }
   .hero-stats { gap: 0.9rem; }
 }
+
+/* RESUME CLICK GRAFFITI POPUP */
+.resume-graffiti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.resume-graffiti-layer.fade-out {
+  animation: graffitiLayerFade 0.35s ease-out forwards;
+}
+
+.graffiti-wall {
+  position: relative;
+  width: min(78vw, 760px);
+  min-height: 220px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--border) 65%, #ffffff33);
+  background:
+    radial-gradient(circle at 24% 35%, rgba(255,255,255,0.06), transparent 45%),
+    linear-gradient(165deg, color-mix(in srgb, var(--surface) 88%, #111), color-mix(in srgb, var(--bg) 84%, #000));
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+.paint-splat {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: clamp(10px, 1.2vw, 18px);
+  aspect-ratio: 1;
+  border-radius: 45% 60% 48% 52%;
+  background: hsl(calc(280 + var(--s) * 45), 95%, 62%);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(calc(0.6 * var(--s)));
+  filter: blur(0.2px) saturate(1.4);
+  animation: splatBurst 760ms ease-out var(--d) forwards;
+}
+
+.resume-graffiti-tag {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-8deg) skew(-8deg);
+  padding: 0.55rem 0.95rem 1.2rem;
+  border-radius: 16px;
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(1px);
+  animation: tagDrop 1.2s cubic-bezier(.2,.85,.2,1);
+}
+
+.tag-letter {
+  --rot: calc((var(--i) - 2.5) * 5deg);
+  display: inline-block;
+  margin: 0 0.08em;
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(2rem, 8vw, 4.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  transform: rotate(var(--rot));
+  color: #fffbf0;
+  -webkit-text-stroke: 2px #140d2a;
+  text-shadow:
+    0 0 0 #140d2a,
+    -2px 2px 0 #140d2a,
+    -4px 5px 0 color-mix(in srgb, var(--accent2) 58%, #000),
+    0 0 24px rgba(184,69,255,0.55),
+    0 0 32px rgba(255,90,61,0.4);
+  background: linear-gradient(90deg, #b845ff 0%, #ff5a3d 42%, #7fffcf 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.graffiti-drips {
+  position: absolute;
+  left: 20%;
+  right: 16%;
+  bottom: 0.3rem;
+  height: 36px;
+}
+
+.graffiti-drips i {
+  position: absolute;
+  bottom: 0;
+  width: 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff5a3d, #b845ff);
+  box-shadow: 0 0 10px rgba(184,69,255,0.5);
+  animation: dripFall 1.15s ease-in infinite alternate;
+}
+
+.graffiti-drips i:nth-child(1) { left: 6%; height: 24px; animation-delay: .05s; }
+.graffiti-drips i:nth-child(2) { left: 36%; height: 18px; animation-delay: .25s; }
+.graffiti-drips i:nth-child(3) { left: 61%; height: 28px; animation-delay: .12s; }
+.graffiti-drips i:nth-child(4) { right: 9%; height: 21px; animation-delay: .35s; }
+
+@keyframes tagDrop {
+  0% { opacity: 0; transform: translate(-50%, -28%) rotate(-16deg) skew(-10deg) scale(0.72); }
+  35% { opacity: 1; }
+  70% { transform: translate(-50%, -50%) rotate(-6deg) skew(-8deg) scale(1.04); }
+  100% { transform: translate(-50%, -50%) rotate(-8deg) skew(-8deg) scale(1); }
+}
+
+@keyframes splatBurst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.18); }
+  25% { opacity: 0.95; }
+  100% { opacity: 0.35; transform: translate(-50%, -50%) scale(calc(1.35 * var(--s))); }
+}
+
+@keyframes dripFall {
+  from { transform: scaleY(0.55); opacity: 0.92; }
+  to { transform: scaleY(1); opacity: 0.55; }
+}
+
+@keyframes graffitiLayerFade {
+  to { opacity: 0; }
+}
