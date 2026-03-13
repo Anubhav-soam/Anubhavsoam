@@ -26,6 +26,42 @@ function showTab(tab) {
 
 
 
+
+function popResumeGraffiti() {
+  const layer = document.createElement('div');
+  layer.className = 'resume-graffiti-layer';
+
+  const graffiti = document.createElement('div');
+  graffiti.className = 'resume-graffiti';
+  graffiti.innerHTML = '<span>Graffiti Drop!</span>';
+
+  const spray = document.createElement('div');
+  spray.className = 'resume-spray';
+
+  layer.appendChild(spray);
+  layer.appendChild(graffiti);
+  document.body.appendChild(layer);
+
+  setTimeout(() => {
+    layer.classList.add('fade-out');
+  }, 1150);
+
+  setTimeout(() => {
+    layer.remove();
+  }, 1550);
+}
+
+function initResumeGraffiti() {
+  const resumeBtn = document.getElementById('resumeBtn');
+  if (!resumeBtn) return;
+
+  resumeBtn.addEventListener('click', () => {
+    popResumeGraffiti();
+    closeQuickActions();
+    closeNavMenu();
+  });
+}
+
 function toggleNavMenu() {
   const nav = document.querySelector('.main-nav');
   const btn = document.getElementById('nav-toggle');
@@ -590,6 +626,7 @@ async function initBlogApp() {
   applyTheme(savedTheme);
   initNavMenu();
   initQuickActions();
+  initResumeGraffiti();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {

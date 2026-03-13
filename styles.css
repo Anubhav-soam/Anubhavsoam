@@ -1838,3 +1838,73 @@ display: grid;
   .theme-toggle { padding: 0.45rem 0.7rem; font-size: 0.72rem; }
   .hero-stats { gap: 0.9rem; }
 }
+
+/* RESUME CLICK GRAFFITI POPUP */
+.resume-graffiti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.resume-graffiti-layer.fade-out {
+  animation: graffitiLayerFade 0.35s ease-out forwards;
+}
+
+.resume-spray {
+  position: absolute;
+  width: min(62vw, 520px);
+  aspect-ratio: 1.7;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 20% 42%, rgba(184,69,255,0.38) 0 20%, transparent 21%),
+    radial-gradient(circle at 40% 64%, rgba(255,90,61,0.38) 0 24%, transparent 25%),
+    radial-gradient(circle at 58% 38%, rgba(127,255,207,0.28) 0 18%, transparent 19%),
+    radial-gradient(circle at 76% 56%, rgba(91,143,255,0.32) 0 16%, transparent 17%);
+  filter: blur(0.5px) saturate(1.35);
+  animation: sprayBurst 1.15s cubic-bezier(.2,.8,.2,1);
+}
+
+.resume-graffiti {
+  position: relative;
+  padding: 0.95rem 1.45rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent2) 55%, #fff);
+  background: color-mix(in srgb, var(--surface) 86%, #00000014);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(255,255,255,0.08) inset;
+  transform: rotate(-3deg);
+  animation: graffitiPop 1.15s cubic-bezier(.2,.8,.2,1);
+}
+
+.resume-graffiti span {
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(1.1rem, 2.8vw, 1.7rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #b845ff 0%, #ff5a3d 50%, #7fffcf 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 4px 16px rgba(255, 90, 61, 0.22);
+}
+
+@keyframes graffitiPop {
+  0% { opacity: 0; transform: translateY(14px) scale(0.75) rotate(-7deg); }
+  30% { opacity: 1; }
+  75% { opacity: 1; transform: translateY(0) scale(1.02) rotate(-2deg); }
+  100% { opacity: 0.98; transform: translateY(-3px) scale(1) rotate(-3deg); }
+}
+
+@keyframes sprayBurst {
+  0% { opacity: 0; transform: scale(0.66); }
+  20% { opacity: 0.85; }
+  100% { opacity: 0.05; transform: scale(1.08); }
+}
+
+@keyframes graffitiLayerFade {
+  to { opacity: 0; }
+}
