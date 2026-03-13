@@ -772,7 +772,23 @@ function updateFAB() {
   fab.classList.toggle('visible', show);
 }
 
+function renderBlogSkeleton() {
+  return `<div class="blog-skeleton-wrap" aria-hidden="true">
+    <div class="blog-skeleton-line w-32"></div>
+    <div class="blog-skeleton-line w-20"></div>
+    <div class="blog-skeleton-grid">
+      <div class="blog-skeleton-card"></div>
+      <div class="blog-skeleton-card"></div>
+      <div class="blog-skeleton-card"></div>
+      <div class="blog-skeleton-card"></div>
+    </div>
+  </div>`;
+}
+
 async function initBlogApp() {
+  const root = document.getElementById('blogRoot');
+  if (root) root.innerHTML = renderBlogSkeleton();
+
   await loadDB();
   renderBlog();
   updateCloudControls();
