@@ -25,7 +25,7 @@
       </div>
       </div>
     </div>
-    <a class="theme-toggle nav-action-btn nav-resume-btn" href="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/Anubhav_soam_resume.pdf?raw=1" download="Anubhav_soam_resume.pdf" target="_blank" rel="noreferrer noopener" aria-label="Download resume">📄 Resume</a>
+    <a id="resumeBtn" class="theme-toggle nav-action-btn nav-resume-btn" href="https://github.com/Anubhav-soam/Anubhavsoam/blob/main/Anubhav_soam_resume.pdf?raw=1" download="Anubhav_soam_resume.pdf" target="_blank" rel="noreferrer noopener" aria-label="Download resume">📄 Resume</a>
   </nav>
 
   <main id="portfolio" class="tab-content active">
@@ -272,16 +272,17 @@
 
         <div>
           <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:1.5rem;color:var(--muted);">Certifications</h3>
-          <div class="cert-grid">
-            <div class="cert-item">Alteryx Designer Core</div>
-            <div class="cert-item">Derivatives – Options & Futures</div>
-            <div class="cert-item">NPTEL – DBMS</div>
-            <div class="cert-item">NPTEL – DSA using Python</div>
-            <div class="cert-item">Financial Modelling</div>
-            <div class="cert-item">Investment Banking Analysis</div>
-            <div class="cert-item">Power BI</div>
-            <div class="cert-item">NISM – SEBI Investors Module</div>
+          <div class="cert-grid" id="certGrid">
+            <div class="cert-item" data-cert-key="alteryx-designer-core" data-cert-file="alteryx-designer-core">Alteryx Designer Core</div>
+            <div class="cert-item" data-cert-key="derivatives-options-futures" data-cert-file="derivatives-options-futures">Derivatives – Options & Futures</div>
+            <div class="cert-item" data-cert-key="nptel-dbms" data-cert-file="nptel-dbms">NPTEL – DBMS</div>
+            <div class="cert-item" data-cert-key="nptel-dsa-using-python" data-cert-file="nptel-dsa-using-python">NPTEL – DSA using Python</div>
+            <div class="cert-item" data-cert-key="financial-modelling" data-cert-file="financial-modelling">Financial Modelling</div>
+            <div class="cert-item" data-cert-key="investment-banking-analysis" data-cert-file="investment-banking-analysis">Investment Banking Analysis</div>
+            <div class="cert-item" data-cert-key="power-bi" data-cert-file="power-bi">Power BI</div>
+            <div class="cert-item" data-cert-key="nism-sebi-investors-module" data-cert-file="nism-sebi-investors-module">NISM – SEBI Investors Module</div>
           </div>
+
 
           <div class="achievement-card" style="margin-top:2rem;">
             <h3>🏆 Research Paper Publication</h3>
