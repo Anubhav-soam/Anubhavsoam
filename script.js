@@ -26,6 +26,203 @@ function showTab(tab) {
 
 
 
+
+function popResumeGraffiti() {
+  const layer = document.createElement('div');
+  layer.className = 'resume-confetti-layer';
+
+  const burstCount = 160;
+  const colors = ['#ff5a3d', '#ffd84d', '#7fffcf', '#5b8fff', '#b845ff', '#8df95f', '#ff7db8'];
+
+  for (let i = 0; i < burstCount; i += 1) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.style.setProperty('--x', `${Math.random() * 100}%`);
+    piece.style.setProperty('--delay', `${Math.random() * 240}ms`);
+    piece.style.setProperty('--duration', `${2.4 + Math.random() * 1.6}s`);
+    piece.style.setProperty('--drift', `${-90 + Math.random() * 180}px`);
+    piece.style.setProperty('--rot', `${Math.random() * 720}deg`);
+    piece.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)]);
+    piece.classList.toggle('confetti-ribbon', Math.random() > 0.35);
+    layer.appendChild(piece);
+  }
+
+  document.body.appendChild(layer);
+  setTimeout(() => layer.classList.add('fade-out'), 2200);
+  setTimeout(() => layer.remove(), 2900);
+}
+
+const certPreviewCache = new Map();
+const CERT_IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
+const CERT_IMAGE_BASES = [
+  'certificate',
+  'https://raw.githubusercontent.com/Anubhav-soam/Anubhavsoam/main/certificate'
+];
+
+function normalizeCertName(value) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function candidateCertNames(certItem) {
+  const key = certItem.dataset.certKey || '';
+  const fileHint = certItem.dataset.certFile || '';
+  const label = certItem.textContent.trim();
+  const slug = normalizeCertName(label);
+  const underscored = slug.replace(/-/g, '_');
+  const spaced = label
+    .replace(/–/g, '-')
+    .replace(/[–—]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return Array.from(new Set([fileHint, key, slug, underscored, spaced])).filter(Boolean);
+}
+
+function probeImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(src);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+async function resolveCertImage(certItem) {
+  const cacheKey = certItem.dataset.certKey || certItem.textContent.trim();
+  if (certPreviewCache.has(cacheKey)) {
+    return certPreviewCache.get(cacheKey);
+  }
+
+  const names = candidateCertNames(certItem);
+  for (const base of CERT_IMAGE_BASES) {
+    for (const name of names) {
+      for (const ext of CERT_IMAGE_EXTS) {
+        const encodedName = encodeURIComponent(name).replace(/%2F/g, '/');
+        const src = `${base}/${encodedName}.${ext}`;
+        const found = await probeImage(src);
+        if (found) {
+          certPreviewCache.set(cacheKey, found);
+          return found;
+        }
+      }
+    }
+  }
+
+  certPreviewCache.set(cacheKey, null);
+  return null;
+}
+
+
+function toRawGithubUrl(url) {
+  if (!url) return '';
+  if (url.includes('raw.githubusercontent.com')) return url;
+  const blobMarker = 'github.com/';
+  if (!url.includes(blobMarker) || !url.includes('/blob/')) return url;
+  const parts = url.split('github.com/')[1].split('/');
+  if (parts.length < 5) return url;
+  const owner = parts[0];
+  const repo = parts[1];
+  const branch = parts[3];
+  const path = parts.slice(4).join('/');
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
+}
+
+function toPdfPreviewUrl(url) {
+  const rawUrl = toRawGithubUrl(url);
+  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(rawUrl)}`;
+}
+
+function ensureCertPopup() {
+  let popup = document.getElementById('certHoverPopup');
+  if (popup) return popup;
+
+  popup = document.createElement('div');
+  popup.id = 'certHoverPopup';
+  popup.className = 'cert-hover-popup';
+  popup.innerHTML = `
+    <div class="cert-hover-title"></div>
+    <img class="cert-hover-image" alt="Certificate preview" loading="lazy" />
+    <iframe class="cert-hover-pdf" title="Certificate PDF preview"></iframe>
+    <div class="cert-hover-msg"></div>
+  `;
+  document.body.appendChild(popup);
+  return popup;
+}
+
+function initCertificatePreview() {
+  const certGrid = document.getElementById('certGrid');
+  if (!certGrid) return;
+
+  const popup = ensureCertPopup();
+  const title = popup.querySelector('.cert-hover-title');
+  const image = popup.querySelector('.cert-hover-image');
+  const pdf = popup.querySelector('.cert-hover-pdf');
+  const msg = popup.querySelector('.cert-hover-msg');
+
+  certGrid.querySelectorAll('.cert-item[data-cert-key]').forEach((certItem) => {
+    certItem.addEventListener('mouseenter', async () => {
+      const certName = certItem.textContent.trim();
+      popup.classList.remove('missing');
+      popup.classList.add('visible');
+      title.textContent = certName;
+      msg.textContent = 'Loading certificate...';
+      image.removeAttribute('src');
+      pdf.removeAttribute('src');
+      pdf.style.display = 'none';
+      image.style.display = 'block';
+
+      const directUrl = certItem.dataset.certUrl || '';
+      if (directUrl) {
+        const previewUrl = toRawGithubUrl(directUrl);
+        if (/\.pdf($|\?)/i.test(previewUrl)) {
+          pdf.src = toPdfPreviewUrl(previewUrl);
+          pdf.style.display = 'block';
+          image.style.display = 'none';
+          msg.textContent = '';
+          return;
+        }
+        image.src = previewUrl;
+        msg.textContent = '';
+        return;
+      }
+
+      const src = await resolveCertImage(certItem);
+      if (!src) {
+        popup.classList.add('missing');
+        msg.textContent = 'Preview configured only for Alteryx and Derivatives for now.';
+        return;
+      }
+
+      image.src = src;
+      msg.textContent = '';
+    });
+  });
+
+  certGrid.addEventListener('mouseleave', () => {
+    popup.classList.remove('visible');
+    popup.classList.remove('missing');
+    image.removeAttribute('src');
+    pdf.removeAttribute('src');
+    pdf.style.display = 'none';
+    image.style.display = 'block';
+  });
+}
+
+function initResumeGraffiti() {
+  const resumeBtn = document.getElementById('resumeBtn');
+  if (!resumeBtn) return;
+
+  resumeBtn.addEventListener('click', () => {
+    popResumeGraffiti();
+    closeQuickActions();
+    closeNavMenu();
+  });
+}
+
 function toggleNavMenu() {
   const nav = document.querySelector('.main-nav');
   const btn = document.getElementById('nav-toggle');
@@ -590,6 +787,8 @@ async function initBlogApp() {
   applyTheme(savedTheme);
   initNavMenu();
   initQuickActions();
+  initResumeGraffiti();
+  initCertificatePreview();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
