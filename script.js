@@ -31,24 +31,42 @@ function popResumeGraffiti() {
   const layer = document.createElement('div');
   layer.className = 'resume-graffiti-layer';
 
-  const graffiti = document.createElement('div');
-  graffiti.className = 'resume-graffiti';
-  graffiti.innerHTML = '<span>Graffiti Drop!</span>';
+  const wall = document.createElement('div');
+  wall.className = 'graffiti-wall';
 
-  const spray = document.createElement('div');
-  spray.className = 'resume-spray';
+  const tag = document.createElement('div');
+  tag.className = 'resume-graffiti-tag';
 
-  layer.appendChild(spray);
-  layer.appendChild(graffiti);
+  const letters = 'RESUME'.split('');
+  letters.forEach((char, idx) => {
+    const letter = document.createElement('span');
+    letter.className = 'tag-letter';
+    letter.style.setProperty('--i', String(idx));
+    letter.textContent = char;
+    tag.appendChild(letter);
+  });
+
+  const drips = document.createElement('div');
+  drips.className = 'graffiti-drips';
+  drips.innerHTML = '<i></i><i></i><i></i><i></i>';
+  tag.appendChild(drips);
+
+  for (let i = 0; i < 18; i += 1) {
+    const splat = document.createElement('span');
+    splat.className = 'paint-splat';
+    splat.style.setProperty('--x', `${Math.random() * 100}%`);
+    splat.style.setProperty('--y', `${Math.random() * 100}%`);
+    splat.style.setProperty('--s', `${0.5 + Math.random() * 1.8}`);
+    splat.style.setProperty('--d', `${Math.random() * 420}ms`);
+    wall.appendChild(splat);
+  }
+
+  wall.appendChild(tag);
+  layer.appendChild(wall);
   document.body.appendChild(layer);
 
-  setTimeout(() => {
-    layer.classList.add('fade-out');
-  }, 1150);
-
-  setTimeout(() => {
-    layer.remove();
-  }, 1550);
+  setTimeout(() => layer.classList.add('fade-out'), 1450);
+  setTimeout(() => layer.remove(), 1850);
 }
 
 function initResumeGraffiti() {
