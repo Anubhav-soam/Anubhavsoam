@@ -21,10 +21,208 @@ function showTab(tab) {
 
   closeNavMenu();
   closeQuickActions();
+  closeProjectsMenu();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 
+
+
+function popResumeGraffiti() {
+  const layer = document.createElement('div');
+  layer.className = 'resume-confetti-layer';
+
+  const burstCount = 160;
+  const colors = ['#ff5a3d', '#ffd84d', '#7fffcf', '#5b8fff', '#b845ff', '#8df95f', '#ff7db8'];
+
+  for (let i = 0; i < burstCount; i += 1) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.style.setProperty('--x', `${Math.random() * 100}%`);
+    piece.style.setProperty('--delay', `${Math.random() * 240}ms`);
+    piece.style.setProperty('--duration', `${2.4 + Math.random() * 1.6}s`);
+    piece.style.setProperty('--drift', `${-90 + Math.random() * 180}px`);
+    piece.style.setProperty('--rot', `${Math.random() * 720}deg`);
+    piece.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)]);
+    piece.classList.toggle('confetti-ribbon', Math.random() > 0.35);
+    layer.appendChild(piece);
+  }
+
+  document.body.appendChild(layer);
+  setTimeout(() => layer.classList.add('fade-out'), 2200);
+  setTimeout(() => layer.remove(), 2900);
+}
+
+const certPreviewCache = new Map();
+const CERT_IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
+const CERT_IMAGE_BASES = [
+  'certificate',
+  'https://raw.githubusercontent.com/Anubhav-soam/Anubhavsoam/main/certificate'
+];
+
+function normalizeCertName(value) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function candidateCertNames(certItem) {
+  const key = certItem.dataset.certKey || '';
+  const fileHint = certItem.dataset.certFile || '';
+  const label = certItem.textContent.trim();
+  const slug = normalizeCertName(label);
+  const underscored = slug.replace(/-/g, '_');
+  const spaced = label
+    .replace(/–/g, '-')
+    .replace(/[–—]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return Array.from(new Set([fileHint, key, slug, underscored, spaced])).filter(Boolean);
+}
+
+function probeImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(src);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+async function resolveCertImage(certItem) {
+  const cacheKey = certItem.dataset.certKey || certItem.textContent.trim();
+  if (certPreviewCache.has(cacheKey)) {
+    return certPreviewCache.get(cacheKey);
+  }
+
+  const names = candidateCertNames(certItem);
+  for (const base of CERT_IMAGE_BASES) {
+    for (const name of names) {
+      for (const ext of CERT_IMAGE_EXTS) {
+        const encodedName = encodeURIComponent(name).replace(/%2F/g, '/');
+        const src = `${base}/${encodedName}.${ext}`;
+        const found = await probeImage(src);
+        if (found) {
+          certPreviewCache.set(cacheKey, found);
+          return found;
+        }
+      }
+    }
+  }
+
+  certPreviewCache.set(cacheKey, null);
+  return null;
+}
+
+
+function toRawGithubUrl(url) {
+  if (!url) return '';
+  if (url.includes('raw.githubusercontent.com')) return url;
+  const blobMarker = 'github.com/';
+  if (!url.includes(blobMarker) || !url.includes('/blob/')) return url;
+  const parts = url.split('github.com/')[1].split('/');
+  if (parts.length < 5) return url;
+  const owner = parts[0];
+  const repo = parts[1];
+  const branch = parts[3];
+  const path = parts.slice(4).join('/');
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
+}
+
+function toPdfPreviewUrl(url) {
+  const rawUrl = toRawGithubUrl(url);
+  return `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(rawUrl)}`;
+}
+
+function ensureCertPopup() {
+  let popup = document.getElementById('certHoverPopup');
+  if (popup) return popup;
+
+  popup = document.createElement('div');
+  popup.id = 'certHoverPopup';
+  popup.className = 'cert-hover-popup';
+  popup.innerHTML = `
+    <div class="cert-hover-title"></div>
+    <img class="cert-hover-image" alt="Certificate preview" loading="lazy" />
+    <iframe class="cert-hover-pdf" title="Certificate PDF preview"></iframe>
+    <div class="cert-hover-msg"></div>
+  `;
+  document.body.appendChild(popup);
+  return popup;
+}
+
+function initCertificatePreview() {
+  const certGrid = document.getElementById('certGrid');
+  if (!certGrid) return;
+
+  const popup = ensureCertPopup();
+  const title = popup.querySelector('.cert-hover-title');
+  const image = popup.querySelector('.cert-hover-image');
+  const pdf = popup.querySelector('.cert-hover-pdf');
+  const msg = popup.querySelector('.cert-hover-msg');
+
+  certGrid.querySelectorAll('.cert-item[data-cert-key]').forEach((certItem) => {
+    certItem.addEventListener('mouseenter', async () => {
+      const certName = certItem.textContent.trim();
+      popup.classList.remove('missing');
+      popup.classList.add('visible');
+      title.textContent = certName;
+      msg.textContent = 'Loading certificate...';
+      image.removeAttribute('src');
+      pdf.removeAttribute('src');
+      pdf.style.display = 'none';
+      image.style.display = 'block';
+
+      const directUrl = certItem.dataset.certUrl || '';
+      if (directUrl) {
+        const previewUrl = toRawGithubUrl(directUrl);
+        if (/\.pdf($|\?)/i.test(previewUrl)) {
+          pdf.src = toPdfPreviewUrl(previewUrl);
+          pdf.style.display = 'block';
+          image.style.display = 'none';
+          msg.textContent = '';
+          return;
+        }
+        image.src = previewUrl;
+        msg.textContent = '';
+        return;
+      }
+
+      const src = await resolveCertImage(certItem);
+      if (!src) {
+        popup.classList.add('missing');
+        msg.textContent = 'Preview configured only for Alteryx and Derivatives for now.';
+        return;
+      }
+
+      image.src = src;
+      msg.textContent = '';
+    });
+  });
+
+  certGrid.addEventListener('mouseleave', () => {
+    popup.classList.remove('visible');
+    popup.classList.remove('missing');
+    image.removeAttribute('src');
+    pdf.removeAttribute('src');
+    pdf.style.display = 'none';
+    image.style.display = 'block';
+  });
+}
+
+function initResumeGraffiti() {
+  const resumeBtn = document.getElementById('resumeBtn');
+  if (!resumeBtn) return;
+
+  resumeBtn.addEventListener('click', () => {
+    popResumeGraffiti();
+    closeQuickActions();
+    closeNavMenu();
+  });
+}
 
 function toggleNavMenu() {
   const nav = document.querySelector('.main-nav');
@@ -91,6 +289,282 @@ function initNavMenu() {
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) closeNavMenu();
   });
+}
+
+
+function toggleProjectsMenu() {
+  const wrap = document.getElementById('navProjectsDropdown');
+  const btn = document.getElementById('projectsMenuBtn');
+  if (!wrap || !btn) return;
+  const open = wrap.classList.toggle('open');
+  btn.setAttribute('aria-expanded', String(open));
+}
+
+function closeProjectsMenu() {
+  const wrap = document.getElementById('navProjectsDropdown');
+  const btn = document.getElementById('projectsMenuBtn');
+  if (!wrap || !btn) return;
+  wrap.classList.remove('open');
+  btn.setAttribute('aria-expanded', 'false');
+}
+
+function initProjectsMenu() {
+  const btn = document.getElementById('projectsMenuBtn');
+  if (!btn) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleProjectsMenu();
+  });
+
+  document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('navProjectsDropdown');
+    if (!wrap || !wrap.classList.contains('open')) return;
+    if (!wrap.contains(e.target)) closeProjectsMenu();
+  });
+}
+
+function goToProjectTool(id) {
+  const el = document.getElementById(id);
+  closeProjectsMenu();
+  closeQuickActions();
+  closeNavMenu();
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function formatINR(value) {
+  const n = Number(value || 0);
+  return `₹ ${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+}
+
+function initDCFModel() {
+  const inputIds = ['dcfRevenue','dcfGrowth','dcfMargin','dcfTax','dcfCapex','dcfNwc','dcfWacc','dcfTerminalGrowth','dcfNetDebt','dcfShares'];
+  const inputs = inputIds.map((id) => document.getElementById(id)).filter(Boolean);
+  if (!inputs.length) return;
+
+  function calc() {
+    const revenue0 = Number(document.getElementById('dcfRevenue').value || 0);
+    const growth = Number(document.getElementById('dcfGrowth').value || 0) / 100;
+    const margin = Number(document.getElementById('dcfMargin').value || 0) / 100;
+    const tax = Number(document.getElementById('dcfTax').value || 0) / 100;
+    const capexPct = Number(document.getElementById('dcfCapex').value || 0) / 100;
+    const nwcPct = Number(document.getElementById('dcfNwc').value || 0) / 100;
+    const wacc = Math.max(0.01, Number(document.getElementById('dcfWacc').value || 0) / 100);
+    const tg = Number(document.getElementById('dcfTerminalGrowth').value || 0) / 100;
+    const netDebt = Number(document.getElementById('dcfNetDebt').value || 0);
+    const shares = Math.max(0.1, Number(document.getElementById('dcfShares').value || 1));
+
+    let revenue = revenue0;
+    const years = 5;
+    const rows = [];
+    let ev = 0;
+
+    for (let y = 1; y <= years; y += 1) {
+      revenue *= (1 + growth);
+      const ebit = revenue * margin;
+      const nopat = ebit * (1 - tax);
+      const capex = revenue * capexPct;
+      const nwc = revenue * nwcPct;
+      const fcff = nopat - capex - nwc;
+      const pv = fcff / ((1 + wacc) ** y);
+      ev += pv;
+      rows.push({ y, revenue, fcff, pv });
+    }
+
+    const terminalFcf = rows[rows.length - 1].fcff * (1 + tg);
+    const terminalValue = terminalFcf / Math.max(0.01, (wacc - tg));
+    const pvTerminal = terminalValue / ((1 + wacc) ** years);
+    ev += pvTerminal;
+    const equity = ev - netDebt;
+    const perShare = equity / shares;
+
+    document.getElementById('dcfEV').textContent = formatINR(ev) + ' Cr';
+    document.getElementById('dcfEquity').textContent = formatINR(equity) + ' Cr';
+    document.getElementById('dcfPerShare').textContent = formatINR(perShare);
+
+    const tbody = document.getElementById('dcfProjectionBody');
+    if (tbody) {
+      tbody.innerHTML = rows.map((r) => `<tr><td>Year ${r.y}</td><td>${formatINR(r.revenue)}</td><td>${formatINR(r.fcff)}</td><td>${formatINR(r.pv)}</td></tr>`).join('')
+        + `<tr><td>Terminal PV</td><td>-</td><td>-</td><td>${formatINR(pvTerminal)}</td></tr>`;
+    }
+  }
+
+  inputs.forEach((i) => i.addEventListener('input', calc));
+  calc();
+}
+
+const pfmState = {
+  family: [],
+  income: [],
+  expenseMaster: [
+    ['Housing', 'Rent'], ['Food', 'Groceries'], ['Transport', 'Fuel'], ['Health', 'Medicines'], ['Lifestyle', 'Subscriptions']
+  ],
+  expenses: [0, 0, 0, 0, 0],
+  loanMaster: ['Home Loan', 'Car Loan', 'Personal Loan'],
+  loans: [
+    { amount: 0, emi: 0, endDate: '' },
+    { amount: 0, emi: 0, endDate: '' },
+    { amount: 0, emi: 0, endDate: '' }
+  ],
+  goals: [
+    { name: 'Buying Home', amount: 0, years: 0 },
+    { name: 'Child Education', amount: 0, years: 0 },
+    { name: 'Retirement Corpus', amount: 0, years: 0 }
+  ]
+};
+
+function initPFMManager() {
+  const root = document.getElementById('pfm-tool');
+  if (!root) return;
+
+  root.querySelectorAll('.pfm-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      root.querySelectorAll('.pfm-tab').forEach((b) => b.classList.remove('active'));
+      root.querySelectorAll('.pfm-pane').forEach((p) => p.classList.remove('active'));
+      btn.classList.add('active');
+      root.querySelector(`#pfm-${btn.dataset.pfmTab}`)?.classList.add('active');
+    });
+  });
+
+  document.getElementById('pfmAddFamily')?.addEventListener('click', () => {
+    const name = document.getElementById('pfmFamilyName').value.trim();
+    if (!name) return;
+    const relation = document.getElementById('pfmFamilyRelation').value;
+    const dob = document.getElementById('pfmFamilyDob').value;
+    const gender = document.getElementById('pfmFamilyGender').value;
+    const age = dob ? new Date().getFullYear() - new Date(dob).getFullYear() : 0;
+    pfmState.family.push({ name, relation, dob, age, gender });
+    document.getElementById('pfmFamilyName').value = '';
+    renderPFM();
+  });
+
+  document.getElementById('pfmAddIncome')?.addEventListener('click', () => {
+    const name = document.getElementById('pfmIncomeName').value.trim();
+    const age = Number(document.getElementById('pfmIncomeAge').value || 0);
+    const income = Number(document.getElementById('pfmIncomeValue').value || 0);
+    if (!name || !income) return;
+    pfmState.income.push({ name, age, income });
+    document.getElementById('pfmIncomeName').value = '';
+    document.getElementById('pfmIncomeAge').value = '';
+    document.getElementById('pfmIncomeValue').value = '';
+    renderPFM();
+  });
+
+  const expWrap = document.getElementById('pfmExpenseInputs');
+  if (expWrap) {
+    expWrap.innerHTML = '<h4>Monthly Expenses</h4>' + pfmState.expenseMaster.map((e, i) =>
+      `<label>${e[0]} - ${e[1]}<input type="number" data-exp-idx="${i}" value="${pfmState.expenses[i]}" step="500"></label>`
+    ).join('');
+    expWrap.querySelectorAll('input[data-exp-idx]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.expenses[Number(el.dataset.expIdx)] = Number(el.value || 0);
+      renderPFM();
+    }));
+  }
+
+  const loanWrap = document.getElementById('pfmLoanInputs');
+  if (loanWrap) {
+    loanWrap.innerHTML = '<h4>Current Loans</h4>' + pfmState.loanMaster.map((loan, i) =>
+      `<div class="pfm-loan-row"><span>${loan}</span><input type="number" data-loan-amt="${i}" placeholder="Amount" value="${pfmState.loans[i].amount}"><input type="number" data-loan-emi="${i}" placeholder="EMI" value="${pfmState.loans[i].emi}"></div>`
+    ).join('');
+    loanWrap.querySelectorAll('input[data-loan-amt]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.loans[Number(el.dataset.loanAmt)].amount = Number(el.value || 0);
+      renderPFM();
+    }));
+    loanWrap.querySelectorAll('input[data-loan-emi]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.loans[Number(el.dataset.loanEmi)].emi = Number(el.value || 0);
+      renderPFM();
+    }));
+  }
+
+  const goalWrap = document.getElementById('pfmGoalInputs');
+  if (goalWrap) {
+    goalWrap.innerHTML = pfmState.goals.map((g, i) =>
+      `<div class="pfm-goal-item"><strong>${g.name}</strong><input type="number" data-goal-amt="${i}" value="${g.amount}" placeholder="Amount today"><input type="number" data-goal-years="${i}" value="${g.years}" placeholder="Years"></div>`
+    ).join('');
+    goalWrap.querySelectorAll('input[data-goal-amt]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.goals[Number(el.dataset.goalAmt)].amount = Number(el.value || 0);
+      renderPFM();
+    }));
+    goalWrap.querySelectorAll('input[data-goal-years]').forEach((el) => el.addEventListener('input', () => {
+      pfmState.goals[Number(el.dataset.goalYears)].years = Number(el.value || 0);
+      renderPFM();
+    }));
+  }
+
+  ['pfmInflation','pfmCurrentAge','pfmRetAge','pfmStartCorpus','pfmReturn'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', renderPFM);
+  });
+
+  document.getElementById('pfmDownloadSummary')?.addEventListener('click', () => {
+    const summary = buildPFMSummary();
+    const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pfm_summary.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  renderPFM();
+}
+
+function buildPFMSummary() {
+  const monthlyIncome = pfmState.income.reduce((a, b) => a + (b.income || 0), 0) / 12;
+  const monthlyExpense = pfmState.expenses.reduce((a, b) => a + b, 0);
+  const monthlyEmi = pfmState.loans.reduce((a, b) => a + (b.emi || 0), 0);
+  const monthlyNet = monthlyIncome - monthlyExpense - monthlyEmi;
+
+  const inflation = Number(document.getElementById('pfmInflation')?.value || 5) / 100;
+  const annualReturn = Number(document.getElementById('pfmReturn')?.value || 12) / 100;
+  const monthlyReturn = annualReturn / 12;
+  const goalRows = pfmState.goals.map((g) => {
+    const future = g.amount > 0 && g.years > 0 ? g.amount * ((1 + inflation) ** g.years) : 0;
+    const months = g.years * 12;
+    const sip = future > 0 && months > 0 ? (future * monthlyReturn) / (((1 + monthlyReturn) ** months) - 1 || 1) : 0;
+    return { ...g, future, sip };
+  });
+  const totalGoalFuture = goalRows.reduce((a, g) => a + g.future, 0);
+  const totalSip = goalRows.reduce((a, g) => a + g.sip, 0);
+
+  const currentAge = Number(document.getElementById('pfmCurrentAge')?.value || 30);
+  const retAge = Number(document.getElementById('pfmRetAge')?.value || 60);
+  const years = Math.max(0, retAge - currentAge);
+  let wealth = Number(document.getElementById('pfmStartCorpus')?.value || 0);
+  const projection = [];
+  for (let y = 1; y <= years; y += 1) {
+    const opening = wealth;
+    wealth = wealth * (1 + annualReturn) + (totalSip * 12);
+    projection.push({ year: y, opening, sip: totalSip * 12, closing: wealth });
+  }
+
+  return { monthlyIncome, monthlyExpense, monthlyEmi, monthlyNet, totalGoalFuture, totalSip, projectedCorpus: wealth, goalRows, projection };
+}
+
+function renderPFM() {
+  const s = buildPFMSummary();
+  const family = document.getElementById('pfmFamilyList');
+  if (family) family.innerHTML = pfmState.family.map((f, i) => `<div class="pfm-row"><span>${f.name} (${f.relation}, ${f.age})</span><button type="button" onclick="pfmState.family.splice(${i},1);renderPFM();">✕</button></div>`).join('') || '<div class="pfm-empty">No family members yet.</div>';
+  const incomes = document.getElementById('pfmIncomeList');
+  if (incomes) incomes.innerHTML = pfmState.income.map((f, i) => `<div class="pfm-row"><span>${f.name} · ${formatINR(f.income)}/yr</span><button type="button" onclick="pfmState.income.splice(${i},1);renderPFM();">✕</button></div>`).join('') || '<div class="pfm-empty">No income entries yet.</div>';
+
+  const map = [
+    ['pfmMonthlyIncome', s.monthlyIncome],
+    ['pfmMonthlyExpense', s.monthlyExpense],
+    ['pfmMonthlyEmi', s.monthlyEmi],
+    ['pfmMonthlyNet', s.monthlyNet],
+    ['pfmGoalFutureTotal', s.totalGoalFuture],
+    ['pfmSipTotal', s.totalSip],
+    ['pfmSummaryGoal', s.totalGoalFuture],
+    ['pfmSummaryProjected', s.projectedCorpus],
+    ['pfmSummaryGap', s.projectedCorpus - s.totalGoalFuture]
+  ];
+  map.forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = formatINR(val);
+  });
+
+  const body = document.getElementById('pfmProjectionBody');
+  if (body) body.innerHTML = s.projection.map((r) => `<tr><td>${r.year}</td><td>${formatINR(r.opening)}</td><td>${formatINR(r.sip)}</td><td>${formatINR(r.closing)}</td></tr>`).join('');
 }
 
 const ADMIN_PASSWORD = 'admin123';
@@ -575,7 +1049,23 @@ function updateFAB() {
   fab.classList.toggle('visible', show);
 }
 
+function renderBlogSkeleton() {
+  return `<div class="blog-skeleton-wrap" aria-hidden="true">
+    <div class="blog-skeleton-line w-32"></div>
+    <div class="blog-skeleton-line w-20"></div>
+    <div class="blog-skeleton-grid">
+      <div class="blog-skeleton-card"></div>
+      <div class="blog-skeleton-card"></div>
+      <div class="blog-skeleton-card"></div>
+      <div class="blog-skeleton-card"></div>
+    </div>
+  </div>`;
+}
+
 async function initBlogApp() {
+  const root = document.getElementById('blogRoot');
+  if (root) root.innerHTML = renderBlogSkeleton();
+
   await loadDB();
   renderBlog();
   updateCloudControls();
@@ -590,6 +1080,11 @@ async function initBlogApp() {
   applyTheme(savedTheme);
   initNavMenu();
   initQuickActions();
+  initProjectsMenu();
+  initResumeGraffiti();
+  initCertificatePreview();
+  initDCFModel();
+  initPFMManager();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
