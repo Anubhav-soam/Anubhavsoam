@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects | DCF Modeling</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css" />
+</head>
+<body>
+  <section id="projects-lab" style="background:var(--surface);max-width:100%;padding:5rem 0;min-height:100vh;">
+    <div style="max-width:1200px;margin:0 auto;padding:0 3rem;">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2 class="section-title">DCF Modeling</h2>
+        <div class="section-line"></div>
+      </div>
+      <p style="margin-bottom:1rem;"><a class="btn btn-blue" href="../../">← Back to Portfolio</a> <a class="btn btn-blue" href="../personal-finance-manager/">Personal Finance Manager</a></p>
+
+      <article class="tool-card" id="dcf-modeling">
+        <h3 class="tool-title">Automated DCF Modeling</h3>
+        <p class="tool-sub">Enter assumptions once — valuation and projection update automatically.</p>
+        <div class="tool-grid">
+          <label>Revenue (₹ Cr)<input id="dcfRevenue" type="number" value="500" step="10"></label>
+          <label>Growth %<input id="dcfGrowth" type="number" value="12" step="0.1"></label>
+          <label>EBIT Margin %<input id="dcfMargin" type="number" value="22" step="0.1"></label>
+          <label>Tax %<input id="dcfTax" type="number" value="25" step="0.1"></label>
+          <label>Capex % of Revenue<input id="dcfCapex" type="number" value="5" step="0.1"></label>
+          <label>NWC % of Revenue<input id="dcfNwc" type="number" value="2" step="0.1"></label>
+          <label>WACC %<input id="dcfWacc" type="number" value="11" step="0.1"></label>
+          <label>Terminal Growth %<input id="dcfTerminalGrowth" type="number" value="4" step="0.1"></label>
+          <label>Net Debt (₹ Cr)<input id="dcfNetDebt" type="number" value="120" step="1"></label>
+          <label>Shares Out. (Cr)<input id="dcfShares" type="number" value="25" step="0.1"></label>
+        </div>
+        <div class="tool-kpis">
+          <div><span>Enterprise Value</span><strong id="dcfEV">-</strong></div>
+          <div><span>Equity Value</span><strong id="dcfEquity">-</strong></div>
+          <div><span>Intrinsic Value / Share</span><strong id="dcfPerShare">-</strong></div>
+        </div>
+        <div class="tool-table-wrap">
+          <table class="tool-table">
+            <thead><tr><th>Year</th><th>Revenue</th><th>FCFF</th><th>PV of FCFF</th></tr></thead>
+            <tbody id="dcfProjectionBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <script src="../../script.js"></script>
+  <script>initDCFModel();</script>
+</body>
+</html>
