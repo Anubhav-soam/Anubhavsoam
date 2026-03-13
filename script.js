@@ -131,6 +131,11 @@ function toRawGithubUrl(url) {
   return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
 }
 
+function toPdfPreviewUrl(url) {
+  const rawUrl = toRawGithubUrl(url);
+  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(rawUrl)}`;
+}
+
 function ensureCertPopup() {
   let popup = document.getElementById('certHoverPopup');
   if (popup) return popup;
@@ -174,7 +179,7 @@ function initCertificatePreview() {
       if (directUrl) {
         const previewUrl = toRawGithubUrl(directUrl);
         if (/\.pdf($|\?)/i.test(previewUrl)) {
-          pdf.src = previewUrl;
+          pdf.src = toPdfPreviewUrl(previewUrl);
           pdf.style.display = 'block';
           image.style.display = 'none';
           msg.textContent = '';
