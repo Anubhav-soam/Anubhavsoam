@@ -1838,3 +1838,99 @@ display: grid;
   .theme-toggle { padding: 0.45rem 0.7rem; font-size: 0.72rem; }
   .hero-stats { gap: 0.9rem; }
 }
+
+/* RESUME CLICK CONFETTI BURST */
+.resume-confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1450;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.resume-confetti-layer.fade-out {
+  animation: confettiLayerFade 0.45s ease-out forwards;
+}
+
+.confetti-piece {
+  position: absolute;
+  left: var(--x);
+  top: -8vh;
+  width: 10px;
+  height: 8px;
+  background: var(--color);
+  border-radius: 2px;
+  opacity: 0;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color) 65%, #fff);
+  animation: confettiFall var(--duration) linear var(--delay) forwards;
+}
+
+.confetti-piece.confetti-ribbon {
+  width: 14px;
+  height: 6px;
+  border-radius: 999px;
+  transform: rotate(14deg);
+}
+
+@keyframes confettiFall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  12% { opacity: 1; }
+  100% {
+    opacity: 0.95;
+    transform: translate3d(var(--drift), 112vh, 0) rotate(var(--rot));
+  }
+}
+
+@keyframes confettiLayerFade {
+  to { opacity: 0; }
+}
+
+/* CERTIFICATE PREVIEW */
+.cert-preview {
+  margin-top: 1rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, #ffffff20);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  gap: 0.7rem;
+  padding: 1rem;
+}
+
+.cert-preview-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+#certPreviewImg {
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, #ffffff22);
+  display: none;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.28);
+}
+
+.cert-preview.visible #certPreviewImg {
+  display: block;
+}
+
+.cert-preview.missing {
+  border-style: dashed;
+}
+
+.cert-item {
+  position: relative;
+}
+
+.cert-item:hover {
+  border-color: color-mix(in srgb, var(--accent2) 62%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent2) 36%, transparent), 0 10px 24px rgba(0,0,0,.18);
+}
