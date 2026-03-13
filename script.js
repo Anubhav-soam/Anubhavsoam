@@ -29,44 +29,103 @@ function showTab(tab) {
 
 function popResumeGraffiti() {
   const layer = document.createElement('div');
-  layer.className = 'resume-graffiti-layer';
+  layer.className = 'resume-confetti-layer';
 
-  const wall = document.createElement('div');
-  wall.className = 'graffiti-wall';
+  const burstCount = 160;
+  const colors = ['#ff5a3d', '#ffd84d', '#7fffcf', '#5b8fff', '#b845ff', '#8df95f', '#ff7db8'];
 
-  const tag = document.createElement('div');
-  tag.className = 'resume-graffiti-tag';
-
-  const letters = 'RESUME'.split('');
-  letters.forEach((char, idx) => {
-    const letter = document.createElement('span');
-    letter.className = 'tag-letter';
-    letter.style.setProperty('--i', String(idx));
-    letter.textContent = char;
-    tag.appendChild(letter);
-  });
-
-  const drips = document.createElement('div');
-  drips.className = 'graffiti-drips';
-  drips.innerHTML = '<i></i><i></i><i></i><i></i>';
-  tag.appendChild(drips);
-
-  for (let i = 0; i < 18; i += 1) {
-    const splat = document.createElement('span');
-    splat.className = 'paint-splat';
-    splat.style.setProperty('--x', `${Math.random() * 100}%`);
-    splat.style.setProperty('--y', `${Math.random() * 100}%`);
-    splat.style.setProperty('--s', `${0.5 + Math.random() * 1.8}`);
-    splat.style.setProperty('--d', `${Math.random() * 420}ms`);
-    wall.appendChild(splat);
+  for (let i = 0; i < burstCount; i += 1) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.style.setProperty('--x', `${Math.random() * 100}%`);
+    piece.style.setProperty('--delay', `${Math.random() * 240}ms`);
+    piece.style.setProperty('--duration', `${2.4 + Math.random() * 1.6}s`);
+    piece.style.setProperty('--drift', `${-90 + Math.random() * 180}px`);
+    piece.style.setProperty('--rot', `${Math.random() * 720}deg`);
+    piece.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)]);
+    piece.classList.toggle('confetti-ribbon', Math.random() > 0.35);
+    layer.appendChild(piece);
   }
 
-  wall.appendChild(tag);
-  layer.appendChild(wall);
   document.body.appendChild(layer);
+  setTimeout(() => layer.classList.add('fade-out'), 2200);
+  setTimeout(() => layer.remove(), 2900);
+}
 
-  setTimeout(() => layer.classList.add('fade-out'), 1450);
-  setTimeout(() => layer.remove(), 1850);
+const certPreviewCache = new Map();
+
+function resolveCertImage(certKey) {
+  if (certPreviewCache.has(certKey)) {
+    return Promise.resolve(certPreviewCache.get(certKey));
+  }
+
+  const exts = ['png', 'jpg', 'jpeg', 'webp'];
+
+  return new Promise((resolve) => {
+    let idx = 0;
+
+    function probe() {
+      if (idx >= exts.length) {
+        certPreviewCache.set(certKey, null);
+        resolve(null);
+        return;
+      }
+
+      const candidate = `certificate/${certKey}.${exts[idx]}`;
+      const testImg = new Image();
+      testImg.onload = () => {
+        certPreviewCache.set(certKey, candidate);
+        resolve(candidate);
+      };
+      testImg.onerror = () => {
+        idx += 1;
+        probe();
+      };
+      testImg.src = candidate;
+    }
+
+    probe();
+  });
+}
+
+function initCertificatePreview() {
+  const certGrid = document.getElementById('certGrid');
+  const preview = document.getElementById('certPreview');
+  const previewLabel = preview?.querySelector('.cert-preview-label');
+  const previewImg = document.getElementById('certPreviewImg');
+
+  if (!certGrid || !preview || !previewLabel || !previewImg) return;
+
+  certGrid.addEventListener('mouseover', async (event) => {
+    const certItem = event.target.closest('.cert-item[data-cert-key]');
+    if (!certItem || !certGrid.contains(certItem)) return;
+
+    const certName = certItem.textContent.trim();
+    const certKey = certItem.dataset.certKey;
+    preview.classList.remove('missing');
+    preview.classList.remove('visible');
+    previewLabel.textContent = `Loading ${certName}...`;
+
+    const src = await resolveCertImage(certKey);
+
+    if (!src) {
+      preview.classList.add('missing');
+      previewLabel.textContent = `${certName} preview not found in /certificate`; 
+      previewImg.removeAttribute('src');
+      return;
+    }
+
+    previewImg.src = src;
+    previewLabel.textContent = certName;
+    preview.classList.add('visible');
+  });
+
+  certGrid.addEventListener('mouseleave', () => {
+    preview.classList.remove('visible');
+    preview.classList.remove('missing');
+    previewLabel.textContent = 'Hover a certification to preview certificate';
+    previewImg.removeAttribute('src');
+  });
 }
 
 function initResumeGraffiti() {
@@ -645,6 +704,7 @@ async function initBlogApp() {
   initNavMenu();
   initQuickActions();
   initResumeGraffiti();
+  initCertificatePreview();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
