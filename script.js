@@ -133,7 +133,7 @@ function toRawGithubUrl(url) {
 
 function toPdfPreviewUrl(url) {
   const rawUrl = toRawGithubUrl(url);
-  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(rawUrl)}`;
+  return `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(rawUrl)}`;
 }
 
 function ensureCertPopup() {
