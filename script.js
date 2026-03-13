@@ -53,78 +53,119 @@ function popResumeGraffiti() {
 }
 
 const certPreviewCache = new Map();
+const CERT_IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
+const CERT_IMAGE_BASES = [
+  'certificate',
+  'https://raw.githubusercontent.com/Anubhav-soam/Anubhavsoam/main/certificate'
+];
 
-function resolveCertImage(certKey) {
-  if (certPreviewCache.has(certKey)) {
-    return Promise.resolve(certPreviewCache.get(certKey));
+function normalizeCertName(value) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function candidateCertNames(certItem) {
+  const key = certItem.dataset.certKey || '';
+  const fileHint = certItem.dataset.certFile || '';
+  const label = certItem.textContent.trim();
+  const slug = normalizeCertName(label);
+  const underscored = slug.replace(/-/g, '_');
+  const spaced = label
+    .replace(/–/g, '-')
+    .replace(/[–—]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return Array.from(new Set([fileHint, key, slug, underscored, spaced])).filter(Boolean);
+}
+
+function probeImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(src);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+async function resolveCertImage(certItem) {
+  const cacheKey = certItem.dataset.certKey || certItem.textContent.trim();
+  if (certPreviewCache.has(cacheKey)) {
+    return certPreviewCache.get(cacheKey);
   }
 
-  const exts = ['png', 'jpg', 'jpeg', 'webp'];
-
-  return new Promise((resolve) => {
-    let idx = 0;
-
-    function probe() {
-      if (idx >= exts.length) {
-        certPreviewCache.set(certKey, null);
-        resolve(null);
-        return;
+  const names = candidateCertNames(certItem);
+  for (const base of CERT_IMAGE_BASES) {
+    for (const name of names) {
+      for (const ext of CERT_IMAGE_EXTS) {
+        const encodedName = encodeURIComponent(name).replace(/%2F/g, '/');
+        const src = `${base}/${encodedName}.${ext}`;
+        const found = await probeImage(src);
+        if (found) {
+          certPreviewCache.set(cacheKey, found);
+          return found;
+        }
       }
-
-      const candidate = `certificate/${certKey}.${exts[idx]}`;
-      const testImg = new Image();
-      testImg.onload = () => {
-        certPreviewCache.set(certKey, candidate);
-        resolve(candidate);
-      };
-      testImg.onerror = () => {
-        idx += 1;
-        probe();
-      };
-      testImg.src = candidate;
     }
+  }
 
-    probe();
-  });
+  certPreviewCache.set(cacheKey, null);
+  return null;
+}
+
+function ensureCertPopup() {
+  let popup = document.getElementById('certHoverPopup');
+  if (popup) return popup;
+
+  popup = document.createElement('div');
+  popup.id = 'certHoverPopup';
+  popup.className = 'cert-hover-popup';
+  popup.innerHTML = `
+    <div class="cert-hover-title"></div>
+    <img class="cert-hover-image" alt="Certificate preview" loading="lazy" />
+    <div class="cert-hover-msg"></div>
+  `;
+  document.body.appendChild(popup);
+  return popup;
 }
 
 function initCertificatePreview() {
   const certGrid = document.getElementById('certGrid');
-  const preview = document.getElementById('certPreview');
-  const previewLabel = preview?.querySelector('.cert-preview-label');
-  const previewImg = document.getElementById('certPreviewImg');
+  if (!certGrid) return;
 
-  if (!certGrid || !preview || !previewLabel || !previewImg) return;
+  const popup = ensureCertPopup();
+  const title = popup.querySelector('.cert-hover-title');
+  const image = popup.querySelector('.cert-hover-image');
+  const msg = popup.querySelector('.cert-hover-msg');
 
-  certGrid.addEventListener('mouseover', async (event) => {
-    const certItem = event.target.closest('.cert-item[data-cert-key]');
-    if (!certItem || !certGrid.contains(certItem)) return;
+  certGrid.querySelectorAll('.cert-item[data-cert-key]').forEach((certItem) => {
+    certItem.addEventListener('mouseenter', async () => {
+      const certName = certItem.textContent.trim();
+      popup.classList.remove('missing');
+      popup.classList.add('visible');
+      title.textContent = certName;
+      msg.textContent = 'Loading certificate...';
+      image.removeAttribute('src');
 
-    const certName = certItem.textContent.trim();
-    const certKey = certItem.dataset.certKey;
-    preview.classList.remove('missing');
-    preview.classList.remove('visible');
-    previewLabel.textContent = `Loading ${certName}...`;
+      const src = await resolveCertImage(certItem);
+      if (!src) {
+        popup.classList.add('missing');
+        msg.textContent = 'Certificate image not found in GitHub certificate folder.';
+        return;
+      }
 
-    const src = await resolveCertImage(certKey);
-
-    if (!src) {
-      preview.classList.add('missing');
-      previewLabel.textContent = `${certName} preview not found in /certificate`; 
-      previewImg.removeAttribute('src');
-      return;
-    }
-
-    previewImg.src = src;
-    previewLabel.textContent = certName;
-    preview.classList.add('visible');
+      image.src = src;
+      msg.textContent = '';
+    });
   });
 
   certGrid.addEventListener('mouseleave', () => {
-    preview.classList.remove('visible');
-    preview.classList.remove('missing');
-    previewLabel.textContent = 'Hover a certification to preview certificate';
-    previewImg.removeAttribute('src');
+    popup.classList.remove('visible');
+    popup.classList.remove('missing');
+    image.removeAttribute('src');
   });
 }
 
