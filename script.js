@@ -1075,9 +1075,17 @@ async function initBlogApp() {
   blogBootstrapped = true;
 }
 
+function removeHomepageProjectsLab() {
+  const isProjectsPath = window.location.pathname.toLowerCase().includes('/projects/');
+  if (isProjectsPath) return;
+  const lab = document.getElementById('projects-lab');
+  if (lab) lab.remove();
+}
+
 (function init() {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   applyTheme(savedTheme);
+  removeHomepageProjectsLab();
   initNavMenu();
   initQuickActions();
   initProjectsMenu();
