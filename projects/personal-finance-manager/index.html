@@ -1,41 +1,36 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Client Financial Profiling Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
+  <title>Client Financial Profiling</title>
+  <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
-  <main class="dashboard-shell">
-    <header class="hero-card">
-      <div>
-        <p class="eyebrow">Personal Finance Manager</p>
-        <h1>Client Financial Profiling Dashboard</h1>
-        <p class="hero-copy">Plan, simulate, and visualize your complete financial journey.</p>
-      </div>
-      <div class="hero-actions">
-        <a class="ghost-btn" href="../../">← Portfolio</a>
-        <button class="ghost-btn" id="export_state" type="button">Export Data</button>
-        <label class="ghost-btn file-btn">Import Data<input id="import_state" type="file" accept="application/json"></label>
-        <button class="ghost-btn danger" id="reset_state" type="button">Reset All</button>
+  <div class="bg"></div>
+  <main class="app">
+    <header class="topbar">
+      <h1>Client Financial Profiling Dashboard</h1>
+      <p>Plan, simulate, and visualize your complete financial journey.</p>
+      <div class="actions">
+        <button id="export_state">Export Data</button>
+        <label class="import-btn">Import Data<input id="import_state" type="file" accept="application/json" hidden></label>
+        <button id="reset_state">Reset All</button>
       </div>
     </header>
 
-    <nav class="tabs" aria-label="Dashboard sections">
-      <button class="tab active" data-tab="profile" type="button">Client Profile</button>
-      <button class="tab" data-tab="goals" type="button">Personal Goals</button>
-      <button class="tab" data-tab="planning" type="button">Financial Planning</button>
+    <nav class="tabs">
+      <button class="tab active" data-tab="profile">👤 Client Profile</button>
+      <button class="tab" data-tab="goals">📈 Personal Goals</button>
+      <button class="tab" data-tab="planning">📊 Financial Planning</button>
     </nav>
 
     <section id="profile" class="panel active"></section>
     <section id="goals" class="panel"></section>
     <section id="planning" class="panel"></section>
   </main>
-  <script src="./app.js"></script>
+
+  <script src="app.js"></script>
 </body>
 </html>
