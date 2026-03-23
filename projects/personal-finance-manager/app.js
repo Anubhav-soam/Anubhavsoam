@@ -196,11 +196,17 @@ function setupAuthModal() {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 }
 
+
+function authInputValues() {
+  const email = document.getElementById('auth_email').value.trim();
+  const password = document.getElementById('auth_password').value;
+  return { email, password };
+}
+
 function setupAuthActions() {
   document.getElementById('sign_in_btn')?.addEventListener('click', async () => {
     if (!supabaseClient) return setStatus('Supabase is not configured on this page.', 'error');
-    const email = document.getElementById('auth_email').value.trim();
-    const password = document.getElementById('auth_password').value;
+    const { email, password } = authInputValues();
     if (!email || !password) return setStatus('Enter both email and password.', 'error');
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) return setStatus(error.message, 'error');
@@ -209,9 +215,9 @@ function setupAuthActions() {
   });
   document.getElementById('sign_up_btn')?.addEventListener('click', async () => {
     if (!supabaseClient) return setStatus('Supabase is not configured on this page.', 'error');
-    const email = document.getElementById('auth_email').value.trim();
-    const password = document.getElementById('auth_password').value;
+    const { email, password } = authInputValues();
     if (!email || !password) return setStatus('Enter both email and password.', 'error');
+    if (password.length < 6) return setStatus('Password must be at least 6 characters.', 'error');
     const { error } = await supabaseClient.auth.signUp({ email, password });
     if (error) return setStatus(error.message, 'error');
     document.getElementById('auth_modal')?.classList.remove('open');
@@ -227,6 +233,18 @@ function setupAuthActions() {
   document.getElementById('sync_now_btn')?.addEventListener('click', async () => {
     if (!currentUser || !supabaseClient) return setStatus('Sign in first to sync.', 'error');
     await saveCloudState();
+  });
+
+  document.getElementById('magic_link_btn')?.addEventListener('click', async () => {
+    if (!supabaseClient) return setStatus('Supabase is not configured on this page.', 'error');
+    const { email } = authInputValues();
+    if (!email) return setStatus('Enter your email address to receive a magic link.', 'error');
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true }
+    });
+    if (error) return setStatus(error.message, 'error');
+    setStatus('Magic link sent. Check your email to complete sign in or sign up.', 'success');
   });
   supabaseClient?.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
