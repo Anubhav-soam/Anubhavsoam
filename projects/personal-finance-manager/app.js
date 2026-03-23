@@ -156,6 +156,20 @@ async function refreshAuthState() {
   }
 }
 
+
+function setupAuthModal() {
+  const modal = document.getElementById('auth_modal');
+  const openBtn = document.getElementById('open_auth_modal');
+  const closeBtn = document.getElementById('close_auth_modal');
+  if (!modal || !openBtn || !closeBtn) return;
+  const close = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
+  const open = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
+  openBtn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+}
+
 function setupAuthActions() {
   document.getElementById('sign_in_btn')?.addEventListener('click', async () => {
     if (!supabaseClient) return;
@@ -163,6 +177,7 @@ function setupAuthActions() {
     const password = document.getElementById('auth_password').value;
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) return setStatus(error.message, 'error');
+    document.getElementById('auth_modal')?.classList.remove('open');
     await refreshAuthState();
   });
   document.getElementById('sign_up_btn')?.addEventListener('click', async () => {
@@ -171,6 +186,7 @@ function setupAuthActions() {
     const password = document.getElementById('auth_password').value;
     const { error } = await supabaseClient.auth.signUp({ email, password });
     if (error) return setStatus(error.message, 'error');
+    document.getElementById('auth_modal')?.classList.remove('open');
     setStatus('Sign-up submitted. Check your email if your Supabase auth requires confirmation.', 'success');
     await refreshAuthState();
   });
@@ -316,6 +332,7 @@ function renderAll(shouldSave = true){
   loadState();
   bindTabs();
   setupGlobalActions();
+  setupAuthModal();
   initSupabase();
   setupAuthActions();
   await refreshAuthState();
