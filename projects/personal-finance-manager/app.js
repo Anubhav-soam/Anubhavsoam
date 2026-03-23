@@ -69,13 +69,27 @@ function initSupabase() {
 
 async function loadCloudState() {
   if (!supabaseClient || !currentUser) return;
+
+  const metadataState = currentUser.user_metadata?.pfm_state;
+  if (metadataState && typeof metadataState === 'object') {
+    Object.assign(state, metadataState);
+    renderAll(false);
+    setStatus(`Signed in as ${currentUser.email}. Cloud sync ready.`, 'success');
+    return;
+  }
+
+  if (!cloudConfig.table) {
+    setStatus(`Signed in as ${currentUser.email}. Cloud sync ready.`, 'success');
+    return;
+  }
+
   const { data, error } = await supabaseClient
     .from(cloudConfig.table)
     .select('state_json')
     .eq('user_id', currentUser.id)
     .maybeSingle();
   if (error) {
-    setStatus(`Cloud load failed: ${error.message}`, 'error');
+    setStatus(`Cloud load warning: ${error.message}`, 'error');
     return;
   }
   if (data?.state_json) {
@@ -87,12 +101,24 @@ async function loadCloudState() {
 
 async function saveCloudState() {
   if (!supabaseClient || !currentUser) return;
-  const payload = { user_id: currentUser.id, email: currentUser.email, state_json: state, updated_at: new Date().toISOString() };
-  const { error } = await supabaseClient.from(cloudConfig.table).upsert(payload, { onConflict: 'user_id' });
-  if (error) {
-    setStatus(`Cloud save failed: ${error.message}`, 'error');
+
+  const mergedData = { ...(currentUser.user_metadata || {}), pfm_state: state, pfm_updated_at: new Date().toISOString() };
+  const { data: updatedUser, error: authError } = await supabaseClient.auth.updateUser({ data: mergedData });
+  if (authError) {
+    setStatus(`Cloud save failed: ${authError.message}`, 'error');
     return;
   }
+  currentUser = updatedUser?.user || currentUser;
+
+  if (cloudConfig.table) {
+    const payload = { user_id: currentUser.id, email: currentUser.email, state_json: state, updated_at: new Date().toISOString() };
+    const { error: tableError } = await supabaseClient.from(cloudConfig.table).upsert(payload, { onConflict: 'user_id' });
+    if (tableError) {
+      setStatus(`Synced auth profile. Table mirror warning: ${tableError.message}`, 'muted-text');
+      return;
+    }
+  }
+
   setStatus(`Synced to cloud for ${currentUser.email}.`, 'success');
 }
 
@@ -172,18 +198,20 @@ function setupAuthModal() {
 
 function setupAuthActions() {
   document.getElementById('sign_in_btn')?.addEventListener('click', async () => {
-    if (!supabaseClient) return;
+    if (!supabaseClient) return setStatus('Supabase is not configured on this page.', 'error');
     const email = document.getElementById('auth_email').value.trim();
     const password = document.getElementById('auth_password').value;
+    if (!email || !password) return setStatus('Enter both email and password.', 'error');
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) return setStatus(error.message, 'error');
     document.getElementById('auth_modal')?.classList.remove('open');
     await refreshAuthState();
   });
   document.getElementById('sign_up_btn')?.addEventListener('click', async () => {
-    if (!supabaseClient) return;
+    if (!supabaseClient) return setStatus('Supabase is not configured on this page.', 'error');
     const email = document.getElementById('auth_email').value.trim();
     const password = document.getElementById('auth_password').value;
+    if (!email || !password) return setStatus('Enter both email and password.', 'error');
     const { error } = await supabaseClient.auth.signUp({ email, password });
     if (error) return setStatus(error.message, 'error');
     document.getElementById('auth_modal')?.classList.remove('open');
@@ -191,7 +219,7 @@ function setupAuthActions() {
     await refreshAuthState();
   });
   document.getElementById('sign_out_btn')?.addEventListener('click', async () => {
-    if (!supabaseClient) return;
+    if (!supabaseClient) return setStatus('Supabase is not configured on this page.', 'error');
     await supabaseClient.auth.signOut();
     currentUser = null;
     setStatus('Signed out. Local data remains on this browser unless you reset it.', 'muted-text');
@@ -202,7 +230,12 @@ function setupAuthActions() {
   });
   supabaseClient?.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
-    if (currentUser) loadCloudState();
+    if (currentUser) {
+      setStatus(`Signed in as ${currentUser.email}.`, 'success');
+      loadCloudState();
+    } else {
+      setStatus('Not signed in. Use email/password above to save separate user data in Supabase.', 'muted-text');
+    }
   });
 }
 
