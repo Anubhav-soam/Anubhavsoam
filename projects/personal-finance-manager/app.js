@@ -1,6 +1,7 @@
 const fmt = (n) => `₹ ${Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 const STORAGE_KEY = 'cfp_dashboard_state_v1';
 const THEME_KEY = 'theme';
+const REMEMBERED_EMAIL_KEY = 'pfm_last_email';
 let renderQueued = false;
 let cloudSaveTimer = null;
 let supabaseClient = null;
@@ -178,10 +179,22 @@ async function refreshAuthState() {
     setStatus(`Signed in as ${currentUser.email}.`, 'success');
     await loadCloudState();
   } else {
-    setStatus('Not signed in. Use email/password above to save separate user data in Supabase.', 'muted-text');
+    setStatus('First time here? Use Sign Up once. After that, sign in with the same email and password.', 'muted-text');
   }
 }
 
+
+
+function rememberEmail(email) {
+  if (!email) return;
+  localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
+}
+
+function hydrateRememberedEmail() {
+  const remembered = localStorage.getItem(REMEMBERED_EMAIL_KEY) || '';
+  const emailInput = document.getElementById('auth_email');
+  if (emailInput && remembered && !emailInput.value) emailInput.value = remembered;
+}
 
 function setupAuthModal() {
   const modal = document.getElementById('auth_modal');
@@ -189,7 +202,7 @@ function setupAuthModal() {
   const closeBtn = document.getElementById('close_auth_modal');
   if (!modal || !openBtn || !closeBtn) return;
   const close = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
-  const open = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
+  const open = () => { hydrateRememberedEmail(); modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
   openBtn.addEventListener('click', open);
   closeBtn.addEventListener('click', close);
   modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
@@ -210,6 +223,7 @@ function setupAuthActions() {
     if (!email || !password) return setStatus('Enter both email and password.', 'error');
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) return setStatus(error.message, 'error');
+    rememberEmail(email);
     document.getElementById('auth_modal')?.classList.remove('open');
     await refreshAuthState();
   });
@@ -220,8 +234,9 @@ function setupAuthActions() {
     if (password.length < 6) return setStatus('Password must be at least 6 characters.', 'error');
     const { error } = await supabaseClient.auth.signUp({ email, password });
     if (error) return setStatus(error.message, 'error');
+    rememberEmail(email);
     document.getElementById('auth_modal')?.classList.remove('open');
-    setStatus('Sign-up submitted. Check your email if your Supabase auth requires confirmation.', 'success');
+    setStatus('Account created in Supabase Auth. Use the same email/password next time to sign in.', 'success');
     await refreshAuthState();
   });
   document.getElementById('sign_out_btn')?.addEventListener('click', async () => {
@@ -244,6 +259,7 @@ function setupAuthActions() {
       options: { shouldCreateUser: true }
     });
     if (error) return setStatus(error.message, 'error');
+    rememberEmail(email);
     setStatus('Magic link sent. Check your email to complete sign in or sign up.', 'success');
   });
   supabaseClient?.auth.onAuthStateChange((_event, session) => {
@@ -252,7 +268,7 @@ function setupAuthActions() {
       setStatus(`Signed in as ${currentUser.email}.`, 'success');
       loadCloudState();
     } else {
-      setStatus('Not signed in. Use email/password above to save separate user data in Supabase.', 'muted-text');
+      setStatus('First time here? Use Sign Up once. After that, sign in with the same email and password.', 'muted-text');
     }
   });
 }
