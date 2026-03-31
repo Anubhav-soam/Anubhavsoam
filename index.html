@@ -19,7 +19,6 @@
       <div class="nav-projects-dropdown" id="navProjectsDropdown">
         <button id="projectsMenuBtn" class="nav-projects-btn" type="button" aria-expanded="false" aria-controls="projectsMenu">Projects ▾</button>
         <div class="nav-projects-menu" id="projectsMenu">
-          <a href="projects/dcf-modeling/">DCF Modeling</a>
           <a href="projects/personal-finance-manager/">Personal Finance Manager</a>
         </div>
       </div>
@@ -197,21 +196,6 @@
     </div>
     <div class="projects-grid">
       <div class="project-card">
-        <div class="project-icon">📊</div>
-        <h3>Financial Modeling & Valuation Tool</h3>
-        <p>Interactive Streamlit dashboard integrating Yahoo Finance APIs, automating DCF valuation and 5–10 year revenue forecasting. Cut manual Excel modeling effort by 70%+.</p>
-        <div>
-          <span class="project-tag">Python</span>
-          <span class="project-tag">Streamlit</span>
-          <span class="project-tag">DCF</span>
-          <span class="project-tag">Yahoo Finance</span>
-        </div>
-        <div style="margin-top:1rem;">
-          <span style="font-size:0.75rem;color:var(--accent);">Advanced sensitivity analysis · Football field charts · EV/EBITDA multiples</span>
-        </div>
-      </div>
-
-      <div class="project-card">
         <div class="project-icon">📈</div>
         <h3>Ratio Analysis Application</h3>
         <p>Financial ratio dashboard automating extraction of income statements, balance sheets, and cash flows from public filings. Supports investment evaluation and peer comparison.</p>
@@ -250,34 +234,6 @@
       </div>
 
       <div class="projects-lab-grid">
-        <article class="tool-card" id="dcf-modeling">
-          <h3 class="tool-title">Automated DCF Modeling</h3>
-          <p class="tool-sub">Enter assumptions once — valuation and projection update automatically.</p>
-          <div class="tool-grid">
-            <label>Revenue (₹ Cr)<input id="dcfRevenue" type="number" value="500" step="10"></label>
-            <label>Growth %<input id="dcfGrowth" type="number" value="12" step="0.1"></label>
-            <label>EBIT Margin %<input id="dcfMargin" type="number" value="22" step="0.1"></label>
-            <label>Tax %<input id="dcfTax" type="number" value="25" step="0.1"></label>
-            <label>Capex % of Revenue<input id="dcfCapex" type="number" value="5" step="0.1"></label>
-            <label>NWC % of Revenue<input id="dcfNwc" type="number" value="2" step="0.1"></label>
-            <label>WACC %<input id="dcfWacc" type="number" value="11" step="0.1"></label>
-            <label>Terminal Growth %<input id="dcfTerminalGrowth" type="number" value="4" step="0.1"></label>
-            <label>Net Debt (₹ Cr)<input id="dcfNetDebt" type="number" value="120" step="1"></label>
-            <label>Shares Out. (Cr)<input id="dcfShares" type="number" value="25" step="0.1"></label>
-          </div>
-          <div class="tool-kpis">
-            <div><span>Enterprise Value</span><strong id="dcfEV">-</strong></div>
-            <div><span>Equity Value</span><strong id="dcfEquity">-</strong></div>
-            <div><span>Intrinsic Value / Share</span><strong id="dcfPerShare">-</strong></div>
-          </div>
-          <div class="tool-table-wrap">
-            <table class="tool-table">
-              <thead><tr><th>Year</th><th>Revenue</th><th>FCFF</th><th>PV of FCFF</th></tr></thead>
-              <tbody id="dcfProjectionBody"></tbody>
-            </table>
-          </div>
-        </article>
-
         <article class="tool-card" id="pfm-tool">
           <h3 class="tool-title">Personal Finance Manager (Web)</h3>
           <p class="tool-sub">Client profile, goals, planning and summary in one browser tool.</p>
