@@ -173,8 +173,12 @@ function setupGlobalActions() {
 
 async function refreshAuthState() {
   if (!supabaseClient) return;
-  const { data } = await supabaseClient.auth.getUser();
-  currentUser = data?.user || null;
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  currentUser = sessionData?.session?.user || null;
+  if (!currentUser) {
+    const { data: userData } = await supabaseClient.auth.getUser();
+    currentUser = userData?.user || null;
+  }
   if (currentUser) {
     setStatus(`Signed in as ${currentUser.email}.`, 'success');
     await loadCloudState();
@@ -209,6 +213,13 @@ function setupAuthModal() {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 }
 
+function closeAuthModal() {
+  const modal = document.getElementById('auth_modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
 
 function authInputValues() {
   const email = document.getElementById('auth_email').value.trim();
@@ -221,10 +232,11 @@ function setupAuthActions() {
     if (!supabaseClient) return setStatus('Supabase is not configured on this page.', 'error');
     const { email, password } = authInputValues();
     if (!email || !password) return setStatus('Enter both email and password.', 'error');
+    setStatus('Signing in…', 'muted-text');
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) return setStatus(error.message, 'error');
     rememberEmail(email);
-    document.getElementById('auth_modal')?.classList.remove('open');
+    closeAuthModal();
     await refreshAuthState();
   });
   document.getElementById('sign_up_btn')?.addEventListener('click', async () => {
@@ -232,12 +244,20 @@ function setupAuthActions() {
     const { email, password } = authInputValues();
     if (!email || !password) return setStatus('Enter both email and password.', 'error');
     if (password.length < 6) return setStatus('Password must be at least 6 characters.', 'error');
-    const { error } = await supabaseClient.auth.signUp({ email, password });
+    setStatus('Creating account…', 'muted-text');
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.href }
+    });
     if (error) return setStatus(error.message, 'error');
     rememberEmail(email);
-    document.getElementById('auth_modal')?.classList.remove('open');
-    setStatus('Account created in Supabase Auth. Use the same email/password next time to sign in.', 'success');
-    await refreshAuthState();
+    closeAuthModal();
+    if (data?.session) {
+      await refreshAuthState();
+      return;
+    }
+    setStatus('Account created. Please verify your email, then sign in.', 'success');
   });
   document.getElementById('sign_out_btn')?.addEventListener('click', async () => {
     if (!supabaseClient) return setStatus('Supabase is not configured on this page.', 'error');
@@ -256,7 +276,7 @@ function setupAuthActions() {
     if (!email) return setStatus('Enter your email address to receive a magic link.', 'error');
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: { shouldCreateUser: true, emailRedirectTo: window.location.href }
     });
     if (error) return setStatus(error.message, 'error');
     rememberEmail(email);
