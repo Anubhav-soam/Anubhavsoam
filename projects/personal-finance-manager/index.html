@@ -11,6 +11,15 @@
 </head>
 <body>
   <div class="bg"></div>
+  <header class="site-topbar">
+    <div class="site-title">Anubhav Soam · Personal Finance Manager</div>
+    <div class="site-topbar-links">
+      <a class="site-pill-link" href="../../">Portfolio</a>
+      <a class="site-pill-link" href="../../Blog/">Blog</a>
+      <a class="site-pill-link" href="../">All Projects</a>
+      <button id="theme-toggle" type="button">🌙 Dark</button>
+    </div>
+  </header>
   <main class="app">
     <header class="topbar card-shell">
       <div class="topbar-copy">
@@ -20,7 +29,6 @@
       </div>
       <div class="actions">
         <a class="action-link" href="../../">← Back to Portfolio</a>
-        <button id="theme-toggle" type="button">🌙 Dark</button>
         <button id="export_state" type="button">Export Data</button>
         <label class="import-btn">Import Data<input id="import_state" type="file" accept="application/json" hidden></label>
         <button id="reset_state" type="button">Reset All</button>

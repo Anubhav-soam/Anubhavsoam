@@ -8,6 +8,14 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body data-page="blog">
+  <header class="site-topbar">
+    <div class="site-title">Anubhav Soam · Blog</div>
+    <div class="site-topbar-links">
+      <a class="site-pill-link" href="../">Portfolio</a>
+      <a class="site-pill-link" href="../projects/">Projects</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode">🌙 Dark</button>
+    </div>
+  </header>
   <section id="blog-tab" class="tab-content active">
     <div class="blog-bg">
       <div class="blob blob-1"></div>
@@ -19,7 +27,6 @@
       <nav class="blog-nav">
         <div class="nav-brand">Anubhav's Blog</div>
         <div class="nav-actions" style="display:flex;align-items:center;gap:.7rem;">
-          <a class="btn btn-blue" href="../">← Portfolio</a>
           <span id="cloudStatus" class="cloud-status" title="Blog cloud sync status">Local only</span>
           <button id="syncNowBtn" class="btn btn-blue" onclick="syncCloudNow()" type="button" title="Sync now">Sync</button>
         </div>
