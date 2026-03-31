@@ -6,6 +6,7 @@ let renderQueued = false;
 let cloudSaveTimer = null;
 let supabaseClient = null;
 let currentUser = null;
+let authSubscription = null;
 
 const parseDateInput = (value) => {
   if (!value) return null;
@@ -58,6 +59,23 @@ function setStatus(message, type = 'muted-text') {
   if (!el) return;
   el.className = `status-text ${type}`;
   el.textContent = message;
+}
+
+function syncAuthControls() {
+  const signedIn = Boolean(currentUser);
+  const signOutBtn = document.getElementById('sign_out_btn');
+  const syncNowBtn = document.getElementById('sync_now_btn');
+  const openAuthModalBtn = document.getElementById('open_auth_modal');
+  if (signOutBtn) signOutBtn.disabled = !signedIn;
+  if (syncNowBtn) syncNowBtn.disabled = !signedIn;
+  if (openAuthModalBtn) openAuthModalBtn.textContent = signedIn ? 'Switch Account' : 'Sign In / Sign Up';
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('auth_modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
 }
 
 function initSupabase() {
@@ -173,8 +191,15 @@ function setupGlobalActions() {
 
 async function refreshAuthState() {
   if (!supabaseClient) return;
-  const { data } = await supabaseClient.auth.getUser();
-  currentUser = data?.user || null;
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) {
+    currentUser = null;
+    syncAuthControls();
+    setStatus(`Authentication check failed: ${error.message}`, 'error');
+    return;
+  }
+  currentUser = data?.session?.user || null;
+  syncAuthControls();
   if (currentUser) {
     setStatus(`Signed in as ${currentUser.email}.`, 'success');
     await loadCloudState();
@@ -201,7 +226,7 @@ function setupAuthModal() {
   const openBtn = document.getElementById('open_auth_modal');
   const closeBtn = document.getElementById('close_auth_modal');
   if (!modal || !openBtn || !closeBtn) return;
-  const close = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
+  const close = () => { closeAuthModal(); };
   const open = () => { hydrateRememberedEmail(); modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
   openBtn.addEventListener('click', open);
   closeBtn.addEventListener('click', close);
@@ -224,7 +249,8 @@ function setupAuthActions() {
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) return setStatus(error.message, 'error');
     rememberEmail(email);
-    document.getElementById('auth_modal')?.classList.remove('open');
+    document.getElementById('auth_password').value = '';
+    closeAuthModal();
     await refreshAuthState();
   });
   document.getElementById('sign_up_btn')?.addEventListener('click', async () => {
@@ -232,10 +258,17 @@ function setupAuthActions() {
     const { email, password } = authInputValues();
     if (!email || !password) return setStatus('Enter both email and password.', 'error');
     if (password.length < 6) return setStatus('Password must be at least 6 characters.', 'error');
-    const { error } = await supabaseClient.auth.signUp({ email, password });
+    const { error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.href
+      }
+    });
     if (error) return setStatus(error.message, 'error');
     rememberEmail(email);
-    document.getElementById('auth_modal')?.classList.remove('open');
+    document.getElementById('auth_password').value = '';
+    closeAuthModal();
     setStatus('Account created in Supabase Auth. Use the same email/password next time to sign in.', 'success');
     await refreshAuthState();
   });
@@ -256,14 +289,18 @@ function setupAuthActions() {
     if (!email) return setStatus('Enter your email address to receive a magic link.', 'error');
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: window.location.href
+      }
     });
     if (error) return setStatus(error.message, 'error');
     rememberEmail(email);
     setStatus('Magic link sent. Check your email to complete sign in or sign up.', 'success');
   });
-  supabaseClient?.auth.onAuthStateChange((_event, session) => {
+  authSubscription = supabaseClient?.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
+    syncAuthControls();
     if (currentUser) {
       setStatus(`Signed in as ${currentUser.email}.`, 'success');
       loadCloudState();
@@ -403,5 +440,6 @@ function renderAll(shouldSave = true){
   initSupabase();
   setupAuthActions();
   await refreshAuthState();
+  syncAuthControls();
   renderAll(false);
 })();
