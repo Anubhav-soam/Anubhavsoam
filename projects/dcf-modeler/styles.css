@@ -1,0 +1,59 @@
+.dcf-shell {
+  width: min(1200px, calc(100% - 2.5rem));
+  margin: 1.4rem auto 2rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.dcf-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  padding: 1rem;
+}
+
+.dcf-sub { color: var(--muted); margin: 0.4rem 0 1rem; }
+
+.dcf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.8rem;
+}
+
+.dcf-grid label { display: grid; gap: 0.35rem; font-size: 0.78rem; color: var(--muted); }
+.dcf-grid input {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.52rem 0.6rem;
+}
+
+.dcf-actions { margin-top: 0.9rem; }
+
+.kpi-row {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  margin-bottom: 0.9rem;
+}
+.kpi-row article {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem;
+  background: var(--surface);
+}
+.kpi-row span { display: block; font-size: 0.72rem; color: var(--muted); }
+.kpi-row strong { font-size: 1.08rem; color: var(--accent); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th, td { border-bottom: 1px solid var(--border); padding: 0.5rem; text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+
+.sensitivity-table { overflow-x: auto; }
+.sensitivity-table table td,
+.sensitivity-table table th {
+  min-width: 72px;
+  text-align: center;
+}
