@@ -3,100 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Projects | Automated DCF Modeler</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <title>Automated DCF Modeler</title>
   <link rel="stylesheet" href="../../styles.css" />
-  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="site-topbar">
-    <div class="site-title">Anubhav Soam · Automated DCF Modeler</div>
+    <div class="site-title">Automated DCF Modeler</div>
     <div class="site-topbar-links">
       <a class="site-pill-link" href="../../">Portfolio</a>
-      <a class="site-pill-link" href="../../Blog/">Blog</a>
       <a class="site-pill-link" href="../">All Projects</a>
-      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode">🌙 Dark</button>
     </div>
   </header>
-
-  <main class="dcf-shell">
-    <section class="dcf-card">
-      <h1>Automated DCF Modeling Tool</h1>
-      <p class="dcf-sub">Enter assumptions once, auto-project FCFF, valuation, and sensitivity table.</p>
-
-      <div class="dcf-grid">
-        <label>Ticker
-          <input id="ticker" value="RELIANCE.NS" />
-        </label>
-        <label>Base Revenue (₹ Cr)
-          <input id="revenueBase" type="number" value="100000" step="100" />
-        </label>
-        <label>Revenue Growth (%)
-          <input id="revenueGrowth" type="number" value="10" step="0.1" />
-        </label>
-        <label>EBIT Margin (%)
-          <input id="ebitMargin" type="number" value="20" step="0.1" />
-        </label>
-        <label>Tax Rate (%)
-          <input id="taxRate" type="number" value="18" step="0.1" />
-        </label>
-        <label>Depreciation (% of revenue)
-          <input id="deprPct" type="number" value="4" step="0.1" />
-        </label>
-        <label>Capex (% of revenue)
-          <input id="capexPct" type="number" value="6" step="0.1" />
-        </label>
-        <label>ΔNWC (% of revenue)
-          <input id="nwcPct" type="number" value="2" step="0.1" />
-        </label>
-        <label>Net Debt (₹ Cr)
-          <input id="netDebt" type="number" value="30000" step="100" />
-        </label>
-        <label>Cash & Equivalents (₹ Cr)
-          <input id="cash" type="number" value="12000" step="100" />
-        </label>
-        <label>Outstanding Shares (Cr)
-          <input id="shares" type="number" value="676" step="1" />
-        </label>
-        <label>WACC (%)
-          <input id="wacc" type="number" value="12" step="0.1" />
-        </label>
-        <label>Terminal Growth (%)
-          <input id="terminalGrowth" type="number" value="4" step="0.1" />
-        </label>
-        <label>Projection Years
-          <input id="years" type="number" value="5" min="3" max="10" step="1" />
-        </label>
-      </div>
-
-      <div class="dcf-actions">
-        <button id="runModel" class="btn btn-blue" type="button">Run DCF</button>
-      </div>
-    </section>
-
-    <section class="dcf-card">
-      <div class="kpi-row">
-        <article><span>Enterprise Value</span><strong id="kpiEv">-</strong></article>
-        <article><span>Equity Value</span><strong id="kpiEq">-</strong></article>
-        <article><span>Fair Value / Share</span><strong id="kpiPs">-</strong></article>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Year</th><th>Revenue</th><th>EBIT</th><th>NOPAT</th><th>Depreciation</th><th>Capex</th><th>ΔNWC</th><th>FCFF</th><th>PV(FCFF)</th></tr>
-          </thead>
-          <tbody id="projectionBody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="dcf-card">
-      <h2>Sensitivity Analysis (Fair Value / Share)</h2>
-      <div id="sensitivityTable" class="sensitivity-table"></div>
+  <main style="width:min(900px,calc(100% - 2rem));margin:1rem auto;display:grid;gap:1rem;">
+    <section style="border:1px solid var(--border);background:var(--card);padding:1rem;border-radius:12px;">
+      <h1 style="margin-bottom:.5rem;">React + Vercel DCF App</h1>
+      <p>This project was rebuilt as a production-grade architecture with separate frontend and API layers.</p>
+      <ul>
+        <li><strong>Frontend (React/Vite):</strong> <code>./frontend</code></li>
+        <li><strong>Backend (Vercel serverless):</strong> <code>./api/screener.js</code></li>
+      </ul>
+      <p>See <a href="./README.md">README.md</a> for setup, development and deployment steps.</p>
     </section>
   </main>
-
-  <script src="./app.js"></script>
 </body>
 </html>
