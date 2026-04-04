@@ -25,6 +25,17 @@ def _pick_row(df: pd.DataFrame, candidates: List[str]) -> pd.Series | None:
     for key in candidates:
         if key in df.index:
             return pd.to_numeric(df.loc[key], errors='coerce').dropna()
+
+    # Fuzzy fallback for yfinance field-name drift (spaces/underscores/camel-case).
+    normalized_index = {
+        ''.join(ch for ch in str(idx).lower() if ch.isalnum()): idx
+        for idx in df.index
+    }
+    for key in candidates:
+        normalized_key = ''.join(ch for ch in str(key).lower() if ch.isalnum())
+        matched = normalized_index.get(normalized_key)
+        if matched is not None:
+            return pd.to_numeric(df.loc[matched], errors='coerce').dropna()
     return None
 
 
@@ -175,11 +186,16 @@ def dcf_endpoint():
             _safe_frame_call(ticker.get_cashflow, freq='yearly')
         ])
 
-        revenue_row = _pick_row(financials, ['Total Revenue', 'Revenue'])
-        ebit_row = _pick_row(financials, ['EBIT', 'Operating Income'])
-        depreciation_row = _pick_row(cash_flow, ['Depreciation And Amortization', 'Depreciation'])
-        current_assets_row = _pick_row(balance_sheet, ['Current Assets'])
-        current_liabilities_row = _pick_row(balance_sheet, ['Current Liabilities'])
+        revenue_row = _pick_row(financials, ['Total Revenue', 'Revenue', 'totalRevenue'])
+        ebit_row = _pick_row(financials, ['EBIT', 'Operating Income', 'operatingIncome'])
+        depreciation_row = _pick_row(
+            cash_flow,
+            ['Depreciation And Amortization', 'Depreciation', 'Reconciled Depreciation', 'depreciationAndAmortization']
+        )
+        if depreciation_row is None:
+            depreciation_row = _pick_row(financials, ['Reconciled Depreciation', 'Depreciation'])
+        current_assets_row = _pick_row(balance_sheet, ['Current Assets', 'currentAssets'])
+        current_liabilities_row = _pick_row(balance_sheet, ['Current Liabilities', 'currentLiabilities'])
 
         revenue_hist = _last_n(revenue_row, 4)
         ebit_hist = _last_n(ebit_row, 4)
@@ -189,8 +205,8 @@ def dcf_endpoint():
             q_financials = _first_non_empty([
                 _safe_frame_call(ticker.get_income_stmt, freq='quarterly')
             ])
-            q_revenue = _pick_row(q_financials, ['Total Revenue', 'Revenue'])
-            q_ebit = _pick_row(q_financials, ['EBIT', 'Operating Income'])
+            q_revenue = _pick_row(q_financials, ['Total Revenue', 'Revenue', 'totalRevenue'])
+            q_ebit = _pick_row(q_financials, ['EBIT', 'Operating Income', 'operatingIncome'])
             q_revenue_hist = _annualize_from_quarters(q_revenue)
             q_ebit_hist = _annualize_from_quarters(q_ebit)
 
@@ -238,7 +254,7 @@ def dcf_endpoint():
         else:
             implied_nwc = 0.02
 
-        capex_row = _pick_row(cash_flow, ['Capital Expenditure', 'Capital Expenditures'])
+        capex_row = _pick_row(cash_flow, ['Capital Expenditure', 'Capital Expenditures', 'capitalExpenditure'])
         if capex_row is not None and revenue_row is not None:
             capex_ratio_hist = _ratio_series(capex_row.abs(), revenue_row)
             implied_capex = float(np.mean(capex_ratio_hist)) if len(capex_ratio_hist) else 0.05
@@ -277,9 +293,14 @@ def dcf_endpoint():
 
         cash_row = _pick_row(
             balance_sheet,
-            ['Cash Cash Equivalents And Short Term Investments', 'Cash And Cash Equivalents', 'Cash']
+            [
+                'Cash Cash Equivalents And Short Term Investments',
+                'Cash And Cash Equivalents',
+                'Cash',
+                'cashAndCashEquivalents'
+            ]
         )
-        debt_row = _pick_row(balance_sheet, ['Total Debt', 'Long Term Debt', 'Current Debt'])
+        debt_row = _pick_row(balance_sheet, ['Total Debt', 'Long Term Debt', 'Current Debt', 'totalDebt'])
         cash_value = float(cash_row.sort_index().values[-1]) if cash_row is not None and len(cash_row) else 0.0
         debt_value = float(debt_row.sort_index().values[-1]) if debt_row is not None and len(debt_row) else 0.0
 
