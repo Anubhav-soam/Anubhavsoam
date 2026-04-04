@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects | DCF Modeler</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="./dcf.css" />
+</head>
+<body>
+  <header class="site-topbar">
+    <div class="site-title">Anubhav Soam · DCF Modeler</div>
+    <div class="site-topbar-links">
+      <a class="site-pill-link" href="../../">Portfolio</a>
+      <a class="site-pill-link" href="../">All Projects</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="dcf-shell">
+    <section class="dcf-card">
+      <h1>Discounted Cash Flow (API-powered)</h1>
+      <p class="dcf-muted">This page calls a Python backend API for live DCF computation.</p>
+
+      <div class="dcf-grid">
+        <label>Company Symbol
+          <input id="company" value="RELIANCE.NS" />
+        </label>
+        <label>Revenue Growth (%)
+          <input id="growth" type="number" value="10" step="0.1" />
+        </label>
+        <label>EBIT Margin (%)
+          <input id="ebit_margin" type="number" value="20" step="0.1" />
+        </label>
+        <label>WACC (%)
+          <input id="wacc" type="number" value="12" step="0.1" />
+        </label>
+        <label>Terminal Growth (%)
+          <input id="terminal_growth" type="number" value="3" step="0.1" />
+        </label>
+        <label>Tax (%)
+          <input id="tax" type="number" value="18" step="0.1" />
+        </label>
+      </div>
+
+      <div class="dcf-actions">
+        <button id="calculateBtn" class="btn btn-blue" type="button">Calculate DCF</button>
+        <span id="statusText" class="dcf-status"></span>
+      </div>
+      <p class="dcf-help">Set your backend URL by editing <code>window.DCF_BACKEND_URL</code> in <code>dcf.js</code>.</p>
+    </section>
+
+    <section class="dcf-card" id="resultCard" hidden>
+      <h2>Results</h2>
+      <div class="kpi-row">
+        <article><span>Value per Share</span><strong id="valuePerShare">-</strong></article>
+        <article><span>Enterprise Value</span><strong id="enterpriseValue">-</strong></article>
+        <article><span>Equity Value</span><strong id="equityValue">-</strong></article>
+      </div>
+    </section>
+
+    <section class="dcf-card error-card" id="errorCard" hidden>
+      <h2>Unable to Calculate</h2>
+      <p id="errorText"></p>
+    </section>
+  </main>
+
+  <script src="./dcf.js"></script>
+</body>
+</html>
