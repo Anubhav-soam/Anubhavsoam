@@ -15,6 +15,10 @@ The page sends `POST /dcf` with:
   "company": "RELIANCE.NS",
   "growth": 0.1,
   "ebit_margin": 0.2,
+  "depr_pct": 0.03,
+  "nwc_pct": 0.02,
+  "capex_pct": 0.05,
+  "shares": 6700000000,
   "wacc": 0.12,
   "terminal_growth": 0.03,
   "tax": 0.18
