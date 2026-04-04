@@ -27,13 +27,19 @@ function bootstrapTheme() {
 
 function payloadFromForm() {
   const company = String(document.getElementById('symbol')?.value || '').trim();
+  const growth = readNumber('growth');
+  const ebitMargin = readNumber('ebit_margin');
+  const deprPct = readNumber('depr_pct');
+  const nwcPct = readNumber('nwc_pct');
+  const capexPct = readNumber('capex_pct');
+
   return {
     company,
-    growth: readNumber('growth') / 100,
-    ebit_margin: readNumber('ebit_margin') / 100,
-    depr_pct: readNumber('depr_pct') / 100,
-    nwc_pct: readNumber('nwc_pct') / 100,
-    capex_pct: readNumber('capex_pct') / 100,
+    growth: growth == null ? null : growth / 100,
+    ebit_margin: ebitMargin == null ? null : ebitMargin / 100,
+    depr_pct: deprPct == null ? null : deprPct / 100,
+    nwc_pct: nwcPct == null ? null : nwcPct / 100,
+    capex_pct: capexPct == null ? null : capexPct / 100,
     shares: readNumber('shares'),
     wacc: (readNumber('wacc') ?? 12) / 100,
     terminal_growth: (readNumber('terminal_growth') ?? 3) / 100,

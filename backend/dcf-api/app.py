@@ -74,6 +74,19 @@ def _ratio_series(numer: pd.Series | None, denom: pd.Series | None) -> np.ndarra
     return _last_n(values, 3)
 
 
+def _annualize_from_quarters(series: pd.Series | None) -> np.ndarray:
+    if series is None or series.empty:
+        return np.array([])
+    values = series.sort_index().values
+    if len(values) < 4:
+        return np.array([])
+
+    annual = []
+    for i in range(3, len(values)):
+        annual.append(float(np.sum(values[i - 3:i + 1])))
+    return np.array(annual[-3:])
+
+
 def _shares_outstanding(ticker: yf.Ticker, user_shares: float | None) -> float:
     if user_shares and user_shares > 0:
         return user_shares
@@ -170,6 +183,20 @@ def dcf_endpoint():
 
         revenue_hist = _last_n(revenue_row, 4)
         ebit_hist = _last_n(ebit_row, 4)
+
+        if len(revenue_hist) < 2 or len(ebit_hist) == 0:
+            # Quarterly fallback (annualized rolling 4Q) before info-level fallback.
+            q_financials = _first_non_empty([
+                _safe_frame_call(ticker.get_income_stmt, freq='quarterly')
+            ])
+            q_revenue = _pick_row(q_financials, ['Total Revenue', 'Revenue'])
+            q_ebit = _pick_row(q_financials, ['EBIT', 'Operating Income'])
+            q_revenue_hist = _annualize_from_quarters(q_revenue)
+            q_ebit_hist = _annualize_from_quarters(q_ebit)
+
+            if len(q_revenue_hist) >= 2 and len(q_ebit_hist) > 0:
+                revenue_hist = q_revenue_hist
+                ebit_hist = q_ebit_hist
 
         if len(revenue_hist) < 2 or len(ebit_hist) == 0:
             # Fallback path: info-level fields are often available even when statements are sparse.
