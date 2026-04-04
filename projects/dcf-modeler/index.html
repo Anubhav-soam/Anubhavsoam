@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Projects | Automated DCF Modeler</title>
+  <title>Projects | DCF Modeler</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles.css" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./dcf.css" />
 </head>
 <body>
   <header class="site-topbar">
-    <div class="site-title">Anubhav Soam · Automated DCF Modeler</div>
+    <div class="site-title">Anubhav Soam · DCF Modeler</div>
     <div class="site-topbar-links">
       <a class="site-pill-link" href="../../">Portfolio</a>
-      <a class="site-pill-link" href="../../Blog/">Blog</a>
       <a class="site-pill-link" href="../">All Projects</a>
       <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode">🌙 Dark</button>
     </div>
@@ -21,82 +20,52 @@
 
   <main class="dcf-shell">
     <section class="dcf-card">
-      <h1>Automated DCF Modeling Tool</h1>
-      <p class="dcf-sub">Enter assumptions once, auto-project FCFF, valuation, and sensitivity table.</p>
+      <h1>Discounted Cash Flow (API-powered)</h1>
+      <p class="dcf-muted">This page calls a Python backend API for live DCF computation.</p>
 
       <div class="dcf-grid">
-        <label>Ticker
-          <input id="ticker" value="RELIANCE.NS" />
-        </label>
-        <label>Base Revenue (₹ Cr)
-          <input id="revenueBase" type="number" value="100000" step="100" />
+        <label>Company Symbol
+          <input id="company" value="RELIANCE.NS" />
         </label>
         <label>Revenue Growth (%)
-          <input id="revenueGrowth" type="number" value="10" step="0.1" />
+          <input id="growth" type="number" value="10" step="0.1" />
         </label>
         <label>EBIT Margin (%)
-          <input id="ebitMargin" type="number" value="20" step="0.1" />
-        </label>
-        <label>Tax Rate (%)
-          <input id="taxRate" type="number" value="18" step="0.1" />
-        </label>
-        <label>Depreciation (% of revenue)
-          <input id="deprPct" type="number" value="4" step="0.1" />
-        </label>
-        <label>Capex (% of revenue)
-          <input id="capexPct" type="number" value="6" step="0.1" />
-        </label>
-        <label>ΔNWC (% of revenue)
-          <input id="nwcPct" type="number" value="2" step="0.1" />
-        </label>
-        <label>Net Debt (₹ Cr)
-          <input id="netDebt" type="number" value="30000" step="100" />
-        </label>
-        <label>Cash & Equivalents (₹ Cr)
-          <input id="cash" type="number" value="12000" step="100" />
-        </label>
-        <label>Outstanding Shares (Cr)
-          <input id="shares" type="number" value="676" step="1" />
+          <input id="ebit_margin" type="number" value="20" step="0.1" />
         </label>
         <label>WACC (%)
           <input id="wacc" type="number" value="12" step="0.1" />
         </label>
         <label>Terminal Growth (%)
-          <input id="terminalGrowth" type="number" value="4" step="0.1" />
+          <input id="terminal_growth" type="number" value="3" step="0.1" />
         </label>
-        <label>Projection Years
-          <input id="years" type="number" value="5" min="3" max="10" step="1" />
+        <label>Tax (%)
+          <input id="tax" type="number" value="18" step="0.1" />
         </label>
       </div>
 
       <div class="dcf-actions">
-        <button id="runModel" class="btn btn-blue" type="button">Run DCF</button>
+        <button id="calculateBtn" class="btn btn-blue" type="button">Calculate DCF</button>
+        <span id="statusText" class="dcf-status"></span>
       </div>
+      <p class="dcf-help">Set your backend URL by editing <code>window.DCF_BACKEND_URL</code> in <code>dcf.js</code>.</p>
     </section>
 
-    <section class="dcf-card">
+    <section class="dcf-card" id="resultCard" hidden>
+      <h2>Results</h2>
       <div class="kpi-row">
-        <article><span>Enterprise Value</span><strong id="kpiEv">-</strong></article>
-        <article><span>Equity Value</span><strong id="kpiEq">-</strong></article>
-        <article><span>Fair Value / Share</span><strong id="kpiPs">-</strong></article>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Year</th><th>Revenue</th><th>EBIT</th><th>NOPAT</th><th>Depreciation</th><th>Capex</th><th>ΔNWC</th><th>FCFF</th><th>PV(FCFF)</th></tr>
-          </thead>
-          <tbody id="projectionBody"></tbody>
-        </table>
+        <article><span>Value per Share</span><strong id="valuePerShare">-</strong></article>
+        <article><span>Enterprise Value</span><strong id="enterpriseValue">-</strong></article>
+        <article><span>Equity Value</span><strong id="equityValue">-</strong></article>
       </div>
     </section>
 
-    <section class="dcf-card">
-      <h2>Sensitivity Analysis (Fair Value / Share)</h2>
-      <div id="sensitivityTable" class="sensitivity-table"></div>
+    <section class="dcf-card error-card" id="errorCard" hidden>
+      <h2>Unable to Calculate</h2>
+      <p id="errorText"></p>
     </section>
   </main>
 
-  <script src="./app.js"></script>
+  <script src="./dcf.js"></script>
 </body>
 </html>
