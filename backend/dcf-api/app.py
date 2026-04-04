@@ -47,6 +47,36 @@ def _avg_growth(values: np.ndarray) -> float:
     return float(np.mean(growths)) if growths else 0.08
 
 
+def _shares_outstanding(ticker: yf.Ticker) -> float:
+    """
+    Prefer fast_info (lighter + more stable) and avoid relying on ticker.info,
+    which frequently fails when Yahoo blocks/changes upstream responses.
+    """
+    try:
+        fast_info = getattr(ticker, 'fast_info', None) or {}
+        if isinstance(fast_info, dict):
+            for key in ('shares', 'sharesOutstanding'):
+                value = fast_info.get(key)
+                if value:
+                    return _safe_float(value, 0)
+
+            market_cap = fast_info.get('market_cap')
+            last_price = fast_info.get('last_price') or fast_info.get('regular_market_price')
+            if market_cap and last_price:
+                inferred = _safe_float(market_cap, 0) / max(_safe_float(last_price, 0), 1e-9)
+                if inferred > 0:
+                    return inferred
+    except Exception:
+        pass
+
+    # Fallback only when fast_info did not provide enough data.
+    try:
+        info = ticker.info or {}
+        return _safe_float(info.get('sharesOutstanding', 0), 0)
+    except Exception:
+        return 0.0
+
+
 @app.post('/dcf')
 def dcf_endpoint():
     payload: Dict = request.get_json(silent=True) or {}
@@ -65,7 +95,6 @@ def dcf_endpoint():
         ticker = yf.Ticker(company)
         financials = ticker.financials
         balance_sheet = ticker.balance_sheet
-        info = ticker.info or {}
 
         revenue_row = _pick_row(financials, ['Total Revenue', 'Revenue'])
         ebit_row = _pick_row(financials, ['EBIT', 'Operating Income'])
@@ -120,7 +149,7 @@ def dcf_endpoint():
 
         equity_value = enterprise_value + cash_value - debt_value
 
-        shares_outstanding = _safe_float(info.get('sharesOutstanding', 0), 0)
+        shares_outstanding = _shares_outstanding(ticker)
         if shares_outstanding <= 0:
             return jsonify({'error': f'Shares outstanding not available for symbol {company}.'}), 404
 
@@ -133,7 +162,15 @@ def dcf_endpoint():
         })
 
     except Exception as exc:  # noqa: BLE001
-        return jsonify({'error': f'DCF calculation failed: {str(exc)}'}), 500
+        msg = str(exc)
+        if 'Expecting value' in msg and 'line 1 column 1' in msg:
+            return jsonify({
+                'error': (
+                    'Upstream market data provider returned an invalid/empty response. '
+                    'Please retry in a minute, or use another symbol format (e.g., RELIANCE.NS).'
+                )
+            }), 502
+        return jsonify({'error': f'DCF calculation failed: {msg}'}), 500
 
 
 @app.get('/health')
