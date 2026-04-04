@@ -20,20 +20,23 @@ async function getDCF() {
       })
     });
 
-    const data = await res.json();
+    const contentType = res.headers.get('content-type') || '';
+    const data = contentType.includes('application/json')
+      ? await res.json()
+      : { error: await res.text() };
 
     if (!res.ok) {
-      throw new Error(data?.error || 'API request failed');
+      throw new Error(data?.error || `API request failed (${res.status})`);
     }
 
-    const valuePerShare = data?.result?.value_per_share;
+    const valuePerShare = data?.value_per_share ?? data?.result?.value_per_share;
     if (valuePerShare === undefined || valuePerShare === null) {
       throw new Error('Invalid API response');
     }
 
-    resultEl.innerText = 'Value per Share: ₹ ' + valuePerShare;
+    resultEl.innerText = `Value per Share: ₹ ${Number(valuePerShare).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
   } catch (err) {
-    resultEl.innerText = 'Error calculating DCF';
+    resultEl.innerText = `Error calculating DCF: ${err.message}`;
   }
 }
 
