@@ -28,6 +28,23 @@ def _pick_row(df: pd.DataFrame, candidates: List[str]) -> pd.Series | None:
     return None
 
 
+def _first_non_empty(frames: List[pd.DataFrame | None]) -> pd.DataFrame:
+    for frame in frames:
+        if isinstance(frame, pd.DataFrame) and not frame.empty:
+            return frame
+    return pd.DataFrame()
+
+
+def _safe_frame_call(fn, *args, **kwargs) -> pd.DataFrame:
+    try:
+        value = fn(*args, **kwargs)
+        if isinstance(value, pd.DataFrame):
+            return value
+    except Exception:
+        pass
+    return pd.DataFrame()
+
+
 def _last_n(series: pd.Series, n: int = 3) -> np.ndarray:
     if series is None or series.empty:
         return np.array([])
@@ -109,36 +126,6 @@ def _sensitivity_grid(forecast_fcff: List[float], years: int, cash_value: float,
     return rows
 
 
-def _shares_outstanding(ticker: yf.Ticker) -> float:
-    """
-    Prefer fast_info (lighter + more stable) and avoid relying on ticker.info,
-    which frequently fails when Yahoo blocks/changes upstream responses.
-    """
-    try:
-        fast_info = getattr(ticker, 'fast_info', None) or {}
-        if isinstance(fast_info, dict):
-            for key in ('shares', 'sharesOutstanding'):
-                value = fast_info.get(key)
-                if value:
-                    return _safe_float(value, 0)
-
-            market_cap = fast_info.get('market_cap')
-            last_price = fast_info.get('last_price') or fast_info.get('regular_market_price')
-            if market_cap and last_price:
-                inferred = _safe_float(market_cap, 0) / max(_safe_float(last_price, 0), 1e-9)
-                if inferred > 0:
-                    return inferred
-    except Exception:
-        pass
-
-    # Fallback only when fast_info did not provide enough data.
-    try:
-        info = ticker.info or {}
-        return _safe_float(info.get('sharesOutstanding', 0), 0)
-    except Exception:
-        return 0.0
-
-
 @app.post('/dcf')
 def dcf_endpoint():
     payload: Dict = request.get_json(silent=True) or {}
@@ -159,9 +146,21 @@ def dcf_endpoint():
 
     try:
         ticker = yf.Ticker(company)
-        financials = ticker.financials
-        balance_sheet = ticker.balance_sheet
-        cash_flow = ticker.cash_flow
+        financials = _first_non_empty([
+            getattr(ticker, 'financials', None),
+            getattr(ticker, 'income_stmt', None),
+            _safe_frame_call(ticker.get_income_stmt, freq='yearly')
+        ])
+        balance_sheet = _first_non_empty([
+            getattr(ticker, 'balance_sheet', None),
+            getattr(ticker, 'balancesheet', None),
+            _safe_frame_call(ticker.get_balance_sheet, freq='yearly')
+        ])
+        cash_flow = _first_non_empty([
+            getattr(ticker, 'cash_flow', None),
+            getattr(ticker, 'cashflow', None),
+            _safe_frame_call(ticker.get_cashflow, freq='yearly')
+        ])
 
         revenue_row = _pick_row(financials, ['Total Revenue', 'Revenue'])
         ebit_row = _pick_row(financials, ['EBIT', 'Operating Income'])
@@ -173,7 +172,31 @@ def dcf_endpoint():
         ebit_hist = _last_n(ebit_row, 4)
 
         if len(revenue_hist) < 2 or len(ebit_hist) == 0:
-            return jsonify({'error': f'Financial data unavailable for symbol {company}.'}), 404
+            # Fallback path: info-level fields are often available even when statements are sparse.
+            info = {}
+            try:
+                info = ticker.get_info() or {}
+            except Exception:
+                try:
+                    info = ticker.info or {}
+                except Exception:
+                    info = {}
+
+            total_revenue = _safe_float(info.get('totalRevenue', 0), 0)
+            operating_margin = _safe_float(info.get('operatingMargins', 0), 0)
+            if total_revenue > 0:
+                base_rev = total_revenue
+                fallback_growth = _safe_float(growth_in, 0.08) if growth_in is not None else 0.08
+                fallback_margin = _safe_float(ebit_margin_in, operating_margin if operating_margin > 0 else 0.18)
+                revenue_hist = np.array([base_rev / ((1 + fallback_growth) ** 2), base_rev / (1 + fallback_growth), base_rev])
+                ebit_hist = revenue_hist * fallback_margin
+            else:
+                return jsonify({
+                    'error': (
+                        f'Financial data unavailable for symbol {company}. '
+                        'Try another listed symbol format (example: RELIANCE.NS, TCS.NS, AAPL).'
+                    )
+                }), 404
 
         implied_growth = _avg_growth(revenue_hist, 0.08)
         implied_margin = float(np.mean(ebit_hist[-min(len(ebit_hist), len(revenue_hist)):] / revenue_hist[-min(len(ebit_hist), len(revenue_hist)):]))
