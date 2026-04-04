@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects | DCF Modeler</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="./dcf.css" />
+</head>
+<body>
+  <header class="site-topbar">
+    <div class="site-title">Anubhav Soam · DCF Modeler</div>
+    <div class="site-topbar-links">
+      <a class="site-pill-link" href="../../">Portfolio</a>
+      <a class="site-pill-link" href="../">All Projects</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="dcf-shell">
+    <section class="dcf-card">
+      <h1>Discounted Cash Flow (Live API)</h1>
+      <p class="dcf-muted">Backend connected to Render deployment.</p>
+
+      <div class="dcf-grid">
+        <label>Company Symbol
+          <input id="symbol" placeholder="RELIANCE.NS" value="RELIANCE.NS" />
+        </label>
+      </div>
+
+      <div class="dcf-actions">
+        <button class="btn btn-blue" type="button" onclick="getDCF()">Calculate DCF</button>
+      </div>
+
+      <p id="result" class="dcf-status"></p>
+    </section>
+  </main>
+
+  <script src="./dcf.js"></script>
+</body>
+</html>
