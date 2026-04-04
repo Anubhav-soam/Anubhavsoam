@@ -109,6 +109,36 @@ def _sensitivity_grid(forecast_fcff: List[float], years: int, cash_value: float,
     return rows
 
 
+def _shares_outstanding(ticker: yf.Ticker) -> float:
+    """
+    Prefer fast_info (lighter + more stable) and avoid relying on ticker.info,
+    which frequently fails when Yahoo blocks/changes upstream responses.
+    """
+    try:
+        fast_info = getattr(ticker, 'fast_info', None) or {}
+        if isinstance(fast_info, dict):
+            for key in ('shares', 'sharesOutstanding'):
+                value = fast_info.get(key)
+                if value:
+                    return _safe_float(value, 0)
+
+            market_cap = fast_info.get('market_cap')
+            last_price = fast_info.get('last_price') or fast_info.get('regular_market_price')
+            if market_cap and last_price:
+                inferred = _safe_float(market_cap, 0) / max(_safe_float(last_price, 0), 1e-9)
+                if inferred > 0:
+                    return inferred
+    except Exception:
+        pass
+
+    # Fallback only when fast_info did not provide enough data.
+    try:
+        info = ticker.info or {}
+        return _safe_float(info.get('sharesOutstanding', 0), 0)
+    except Exception:
+        return 0.0
+
+
 @app.post('/dcf')
 def dcf_endpoint():
     payload: Dict = request.get_json(silent=True) or {}
