@@ -1,6 +1,4 @@
-(function initDCFPage() {
-  const BACKEND_URL = window.DCF_BACKEND_URL || 'https://YOUR_BACKEND_URL';
-
+(function initTheme() {
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
@@ -8,84 +6,53 @@
     if (toggle) toggle.textContent = theme === 'light' ? '🌙 Dark' : '☀️ Light';
   }
 
-  function bootTheme() {
-    applyTheme(localStorage.getItem('theme') || 'dark');
-    document.getElementById('theme-toggle')?.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme') || 'dark';
-      applyTheme(current === 'dark' ? 'light' : 'dark');
-    });
-  }
-
-  function num(id) {
-    return Number(document.getElementById(id)?.value || 0);
-  }
-
-  function setStatus(msg) {
-    const el = document.getElementById('statusText');
-    if (el) el.textContent = msg;
-  }
-
-  function setError(msg) {
-    const card = document.getElementById('errorCard');
-    const text = document.getElementById('errorText');
-    if (text) text.textContent = msg;
-    if (card) card.hidden = false;
-    const result = document.getElementById('resultCard');
-    if (result) result.hidden = true;
-  }
-
-  function clearError() {
-    const card = document.getElementById('errorCard');
-    if (card) card.hidden = true;
-  }
-
-  function inr(value) {
-    return `₹ ${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
-  }
-
-  async function calculateDCF() {
-    clearError();
-    setStatus('Calculating...');
-
-    const payload = {
-      company: String(document.getElementById('company')?.value || '').trim(),
-      growth: num('growth') / 100,
-      ebit_margin: num('ebit_margin') / 100,
-      wacc: num('wacc') / 100,
-      terminal_growth: num('terminal_growth') / 100,
-      tax: num('tax') / 100
-    };
-
-    if (!payload.company) {
-      setStatus('');
-      setError('Please enter a valid company symbol.');
-      return;
-    }
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/dcf`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error || 'API request failed.');
-      }
-
-      document.getElementById('valuePerShare').textContent = inr(data.value_per_share);
-      document.getElementById('enterpriseValue').textContent = inr(data.enterprise_value);
-      document.getElementById('equityValue').textContent = inr(data.equity_value);
-      document.getElementById('resultCard').hidden = false;
-      setStatus('Done');
-    } catch (err) {
-      setStatus('');
-      setError(err.message || 'Unable to calculate DCF. Check backend URL and symbol.');
-    }
-  }
-
-  document.getElementById('calculateBtn')?.addEventListener('click', calculateDCF);
-  bootTheme();
+  applyTheme(localStorage.getItem('theme') || 'dark');
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
 })();
+
+async function getDCF() {
+  const resultEl = document.getElementById('result');
+  const symbolEl = document.getElementById('symbol');
+  const company = String(symbolEl?.value || '').trim();
+
+  if (!company) {
+    resultEl.innerText = 'Please enter a valid symbol (e.g., RELIANCE.NS).';
+    return;
+  }
+
+  resultEl.innerText = 'Calculating...';
+
+  try {
+    const res = await fetch('https://dcf-backend-0jpy.onrender.com/dcf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        company: company
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || 'DCF API request failed');
+    }
+
+    const valuePerShare = data?.result?.value_per_share ?? data?.value_per_share;
+
+    if (valuePerShare === undefined || valuePerShare === null || Number.isNaN(Number(valuePerShare))) {
+      throw new Error('Invalid response from DCF API');
+    }
+
+    resultEl.innerText = `Value per Share: ₹ ${Number(valuePerShare).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+  } catch (err) {
+    resultEl.innerText = 'Error calculating DCF';
+    console.error(err);
+  }
+}
+
+window.getDCF = getDCF;

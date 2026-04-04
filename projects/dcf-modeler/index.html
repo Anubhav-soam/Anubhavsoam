@@ -20,49 +20,20 @@
 
   <main class="dcf-shell">
     <section class="dcf-card">
-      <h1>Discounted Cash Flow (API-powered)</h1>
-      <p class="dcf-muted">This page calls a Python backend API for live DCF computation.</p>
+      <h1>Discounted Cash Flow (Live API)</h1>
+      <p class="dcf-muted">Backend connected to Render deployment.</p>
 
       <div class="dcf-grid">
         <label>Company Symbol
-          <input id="company" value="RELIANCE.NS" />
-        </label>
-        <label>Revenue Growth (%)
-          <input id="growth" type="number" value="10" step="0.1" />
-        </label>
-        <label>EBIT Margin (%)
-          <input id="ebit_margin" type="number" value="20" step="0.1" />
-        </label>
-        <label>WACC (%)
-          <input id="wacc" type="number" value="12" step="0.1" />
-        </label>
-        <label>Terminal Growth (%)
-          <input id="terminal_growth" type="number" value="3" step="0.1" />
-        </label>
-        <label>Tax (%)
-          <input id="tax" type="number" value="18" step="0.1" />
+          <input id="symbol" placeholder="RELIANCE.NS" value="RELIANCE.NS" />
         </label>
       </div>
 
       <div class="dcf-actions">
-        <button id="calculateBtn" class="btn btn-blue" type="button">Calculate DCF</button>
-        <span id="statusText" class="dcf-status"></span>
+        <button class="btn btn-blue" type="button" onclick="getDCF()">Calculate DCF</button>
       </div>
-      <p class="dcf-help">Set your backend URL by editing <code>window.DCF_BACKEND_URL</code> in <code>dcf.js</code>.</p>
-    </section>
 
-    <section class="dcf-card" id="resultCard" hidden>
-      <h2>Results</h2>
-      <div class="kpi-row">
-        <article><span>Value per Share</span><strong id="valuePerShare">-</strong></article>
-        <article><span>Enterprise Value</span><strong id="enterpriseValue">-</strong></article>
-        <article><span>Equity Value</span><strong id="equityValue">-</strong></article>
-      </div>
-    </section>
-
-    <section class="dcf-card error-card" id="errorCard" hidden>
-      <h2>Unable to Calculate</h2>
-      <p id="errorText"></p>
+      <p id="result" class="dcf-status"></p>
     </section>
   </main>
 
