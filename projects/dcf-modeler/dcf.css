@@ -1,0 +1,76 @@
+.dcf-shell {
+  width: min(980px, calc(100% - 2rem));
+  margin: 1rem auto 2rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.dcf-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+}
+
+.dcf-muted,
+.dcf-help,
+.dcf-status {
+  color: var(--muted);
+}
+
+.dcf-grid {
+  margin-top: .8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: .7rem;
+}
+
+.dcf-grid label {
+  display: grid;
+  gap: .35rem;
+  font-size: .78rem;
+  color: var(--muted);
+}
+
+.dcf-grid input {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 8px;
+  padding: .55rem .65rem;
+}
+
+.dcf-actions {
+  margin-top: .9rem;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: .7rem;
+}
+
+.kpi-row article {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .75rem;
+  background: var(--surface);
+}
+
+.kpi-row span {
+  display: block;
+  font-size: .75rem;
+  color: var(--muted);
+}
+
+.kpi-row strong {
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.error-card p {
+  color: var(--danger);
+}
