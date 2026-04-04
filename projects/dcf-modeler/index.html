@@ -27,13 +27,50 @@
         <label>Company Symbol
           <input id="symbol" placeholder="RELIANCE.NS" value="RELIANCE.NS" />
         </label>
+        <label>Revenue Growth (%)
+          <input id="growth" type="number" step="0.01" placeholder="Auto from history" />
+        </label>
+        <label>EBIT Margin (%)
+          <input id="ebit_margin" type="number" step="0.01" placeholder="Auto from history" />
+        </label>
+        <label>Depreciation as Revenue (%)
+          <input id="depr_pct" type="number" step="0.01" placeholder="Auto / default" />
+        </label>
+        <label>NWC as Revenue (%)
+          <input id="nwc_pct" type="number" step="0.01" placeholder="Auto / default" />
+        </label>
+        <label>Capex as Revenue (%)
+          <input id="capex_pct" type="number" step="0.01" placeholder="Auto / default" />
+        </label>
+        <label>Outstanding Shares
+          <input id="shares" type="number" step="1" placeholder="Auto from market data" />
+        </label>
+        <label>WACC (%)
+          <input id="wacc" type="number" step="0.01" value="12" />
+        </label>
+        <label>Terminal Growth (%)
+          <input id="terminal_growth" type="number" step="0.01" value="3" />
+        </label>
+        <label>Tax (%)
+          <input id="tax" type="number" step="0.01" value="18" />
+        </label>
       </div>
 
       <div class="dcf-actions">
         <button class="btn btn-blue" type="button" onclick="getDCF()">Calculate DCF</button>
       </div>
 
-      <p id="result" class="dcf-status"></p>
+      <div class="kpi-row" style="margin-top:1rem;">
+        <article><span>Enterprise Value</span><strong id="evOut">—</strong></article>
+        <article><span>Equity Value</span><strong id="eqOut">—</strong></article>
+        <article><span>Value Per Share</span><strong id="psOut">—</strong></article>
+      </div>
+
+      <p id="result" class="dcf-status" style="margin-top:1rem;"></p>
+
+      <div style="margin-top:1rem;overflow:auto;">
+        <table id="sensTable"></table>
+      </div>
     </section>
   </main>
 
