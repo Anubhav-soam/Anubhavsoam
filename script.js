@@ -799,9 +799,16 @@ function renderPosts() {
     </div>`;
   }).join('') || '<div class="empty-state"><div class="empty-icon">-</div>No posts yet.</div>';
 
+  const actionButtons = blogState.isAdmin
+    ? `<div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-green" onclick="openPostModal()">New Post</button>
+        <button class="btn btn-blue" onclick="openAutoPostModal()">Auto Post</button>
+      </div>`
+    : '';
+
   return `<button class="back-btn" onclick="showView('topics')">← Back to Topics</button>
   <div class="posts-header"><div><div class="section-title">${esc(topic.name)}</div><div class="section-sub">${esc(topic.desc)}</div></div>
-  ${blogState.isAdmin ? '<button class="btn btn-green" onclick="openPostModal()">New Post</button>' : ''}</div>${items}`;
+  ${actionButtons}</div>${items}`;
 }
 
 function renderSingle() {
@@ -833,6 +840,98 @@ function renderSingle() {
         <button class="btn btn-blue" onclick="submitComment('${post.id}')">Post Comment →</button>
       </div>${commentsList}
     </div>`;
+}
+
+async function fetchWikiSummary(query) {
+  try {
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=1&namespace=0&format=json&origin=*`;
+    const searchRes = await fetch(searchUrl);
+    if (!searchRes.ok) return null;
+    const searchJson = await searchRes.json();
+    const title = searchJson?.[1]?.[0];
+    if (!title) return null;
+
+    const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const summaryRes = await fetch(summaryUrl);
+    if (!summaryRes.ok) return null;
+    const data = await summaryRes.json();
+    return { title: data.title, extract: data.extract, description: data.description };
+  } catch (err) {
+    console.warn('Wiki search failed:', err);
+    return null;
+  }
+}
+
+function buildAutoPostMarkdown(title, wiki) {
+  const sentences = (wiki.extract || '').split(/\.\s+/).map((s) => s.trim()).filter(Boolean);
+  const intro = sentences.slice(0, 2).join('. ') + (sentences.length > 0 ? '.' : '');
+  const bullets = sentences.slice(2, 7).map((s) => s.replace(/\.$/, ''));
+  const quote = wiki.description || `A concise overview of ${title}.`;
+  const details = sentences.slice(7, 12).join('. ') + (sentences.length > 7 ? '.' : '');
+
+  return `# ${title}\n\n${intro}\n\n## Why ${title} matters\n\n- ${bullets[0] || 'Key concept explained clearly.'}\n- ${bullets[1] || 'What makes it important.'}\n- ${bullets[2] || 'How it is used in practice.'}\n- ${bullets[3] || 'A primary benefit or use case.'}\n- ${bullets[4] || 'A closing insight for readers.'}\n\n> ${quote}\n\n${details}\n\n## Takeaway\n\n- ${bullets[0] || 'Focus on the main idea.'}`;
+}
+
+function openAutoPostModal() {
+  const topicOptions = DB.topics.length
+    ? DB.topics.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join('')
+    : '';
+  showModal(`<div class="modal-title">Auto Create Post</div>
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <label class="field-label">Topic</label>
+    <select class="field-input" id="autoTopic">${topicOptions}</select>
+    <div style="margin-bottom:16px;font-size:0.82rem;color:var(--text-secondary);">${DB.topics.length === 0 ? 'No existing topics found. A new topic will be created from the query.' : 'Choose the topic for the generated post.'}</div>
+    <label class="field-label">Search query</label>
+    <input class="field-input" id="autoQuery" placeholder="e.g. Discounted cash flow analysis">
+    <label class="field-label">Title (optional)</label>
+    <input class="field-input" id="autoTitle" placeholder="Custom post title…">
+    <button class="btn btn-blue" onclick="createAutoPostFromQuery()" style="width:100%;padding:12px">Generate Post →</button>`);
+}
+
+async function createAutoPostFromQuery() {
+  const query = document.getElementById('autoQuery')?.value.trim();
+  const customTitle = document.getElementById('autoTitle')?.value.trim();
+  let topicId = document.getElementById('autoTopic')?.value || '';
+
+  if (!query) {
+    toast('Search query required');
+    return;
+  }
+
+  if (!topicId && DB.topics.length === 0) {
+    const newTopic = {
+      id: uid(),
+      name: query,
+      emoji: '',
+      desc: `Auto-generated topic for ${query}`,
+      cover: ''
+    };
+    DB.topics.push(newTopic);
+    topicId = newTopic.id;
+  }
+
+  const wiki = await fetchWikiSummary(query);
+  if (!wiki) {
+    toast('Could not find information for that topic. Try a different query.');
+    return;
+  }
+
+  const title = customTitle || wiki.title || query;
+  const content = buildAutoPostMarkdown(title, wiki);
+  const newPost = {
+    id: uid(),
+    topicId,
+    title,
+    content,
+    cover: '',
+    date: new Date().toISOString().slice(0, 10),
+    likes: 0
+  };
+  DB.posts.push(newPost);
+  saveDB();
+  closeModal();
+  showView('single', newPost.id);
+  toast('Auto post created.');
 }
 
 function toggleLike(pid) {
